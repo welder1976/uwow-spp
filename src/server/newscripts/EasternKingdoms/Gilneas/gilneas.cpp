@@ -20,6 +20,9 @@
 #include "ScriptedEscortAI.h"
 #include "Vehicle.h"
 #include "CharmInfo.h"
+#include "ScriptedGossip.h"
+#include "SpellScript.h"
+#include "CreatureTextMgr.h"
 
 //Phase 1
 /*######
@@ -3060,6 +3063,195 @@ public:
     };
 };
 
+// 36287  // Quest save the children 14368
+class npc_cynthia_36287 : public CreatureScript
+{
+public:
+	npc_cynthia_36287() : CreatureScript("npc_cynthia_36287") {}
+
+	bool OnGossipHello(Player* player, Creature* creature) override
+	{
+		if (player->GetQuestStatus(14368) == QUEST_STATUS_INCOMPLETE)
+		{
+			sCreatureTextMgr->SendChat(creature, TEXT_GENERIC_0, player->GetGUID(), CHAT_MSG_ADDON, LANG_ADDON, TEXT_RANGE_NORMAL, 0, TEAM_OTHER, false, player);
+			creature->AI()->Talk(1);
+			player->KilledMonsterCredit(36287);
+			return true;
+		}
+		return false;
+	}
+};
+
+// 36289
+class npc_ashley_36289 : public CreatureScript
+{
+public:
+	npc_ashley_36289() : CreatureScript("npc_ashley_36289") {}
+
+	bool OnGossipHello(Player* player, Creature* creature) override
+	{
+		if (player->GetQuestStatus(14368) == QUEST_STATUS_INCOMPLETE)
+		{
+			sCreatureTextMgr->SendChat(creature, TEXT_GENERIC_0, player->GetGUID(), CHAT_MSG_ADDON, LANG_ADDON, TEXT_RANGE_NORMAL, 0, TEAM_OTHER, false, player);
+			creature->AI()->Talk(1);
+			player->KilledMonsterCredit(36289);
+			return true;
+		}
+		return false;
+	}
+};
+
+// 36288
+class npc_james_36288 : public CreatureScript
+{
+public:
+	npc_james_36288() : CreatureScript("npc_james_36288") {}
+
+	bool OnGossipHello(Player* player, Creature* creature) override
+	{
+		if (player->GetQuestStatus(14368) == QUEST_STATUS_INCOMPLETE)
+		{
+			sCreatureTextMgr->SendChat(creature, TEXT_GENERIC_0, player->GetGUID(), CHAT_MSG_ADDON, LANG_ADDON, TEXT_RANGE_NORMAL, 0, TEAM_OTHER, false, player);
+			creature->AI()->Talk(1);
+			player->KilledMonsterCredit(36288);
+			return true;
+		}
+		return false;
+	}
+};
+
+// 36283 quest 14382 Two by Sea (enter the ship)
+class npc_forsaken_catapult_36283 : public CreatureScript
+{
+public:
+	npc_forsaken_catapult_36283() : CreatureScript("npc_forsaken_catapult_36283") { }
+
+	struct npc_forsaken_catapult_36283AI : public ScriptedAI
+	{
+		npc_forsaken_catapult_36283AI(Creature* creature) : ScriptedAI(creature) { }
+
+		EventMap    m_events;
+		ObjectGuid  m_playerGUID; // guid only set if mounted
+		ObjectGuid  m_forsakenGUID; // guid only set if mounted
+
+		void Reset() override
+		{
+			me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_NOT_SELECTABLE);
+			me->SetReactState(REACT_PASSIVE);
+			me->setFaction(1735);
+		}
+
+		void PassengerBoarded(Unit* passenger, int8 seatId, bool apply) override
+		{
+			if (apply)
+			{
+				if (Player* player = passenger->ToPlayer())
+				{
+					m_playerGUID = player->GetGUID();
+					if (seatId == 1)
+						m_events.ScheduleEvent(EVENT_PLAYER_LAUNCH, 2000);
+				}
+				else if (Creature* npc = passenger->ToCreature())
+				{
+					m_forsakenGUID = npc->GetGUID();
+					npc->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_NOT_SELECTABLE);
+					m_events.ScheduleEvent(EVENT_CAST_BOULDER, urand(100, 5000));
+					m_events.ScheduleEvent(EVENT_CHECK_PLAYER, 1000);
+					me->setFaction(1735);
+					me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+				}
+			}
+			else
+			{
+				if (passenger->ToPlayer())
+				{
+					if (seatId == 0)
+						m_playerGUID = ObjectGuid::Empty;
+				}
+				else if (Creature* npc = passenger->ToCreature())
+				{
+					m_forsakenGUID = ObjectGuid::Empty;
+					npc->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PC | UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_NOT_SELECTABLE);
+					m_events.CancelEvent(EVENT_CAST_BOULDER);
+					m_events.CancelEvent(EVENT_CHECK_PLAYER);
+					m_events.ScheduleEvent(EVENT_MASTER_RESET, 180000);
+					me->setFaction(35);
+					me->RemoveAllAuras();
+					me->HandleEmoteCommand(EMOTE_ONESHOT_NONE);
+					me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+				}
+			}
+		}
+
+		void UpdateAI(uint32 diff) override
+		{
+			m_events.Update(diff);
+
+			while (uint32 eventId = m_events.ExecuteEvent())
+			{
+				switch (eventId)
+				{
+				case EVENT_CHECK_PLAYER:
+				{
+					if (Creature* target = ObjectAccessor::GetCreature(*me, m_forsakenGUID))
+						if (me->SelectNearestPlayer(7.0f))
+						{
+							target->ExitVehicle();
+							break;
+						}
+
+					m_events.ScheduleEvent(EVENT_CHECK_PLAYER, 1000);
+					break;
+				}
+				case EVENT_CAST_BOULDER:
+				{
+					me->CastSpell(me, SPELL_FIERY_BOULDER, true);
+					m_events.ScheduleEvent(EVENT_CAST_BOULDER, urand(8000, 15000));
+					break;
+				}
+				case EVENT_MASTER_RESET:
+				{
+					if (!m_forsakenGUID.IsEmpty() || !m_playerGUID.IsEmpty())
+						m_events.ScheduleEvent(EVENT_MASTER_RESET, 180000);
+					else
+					{
+						if (TempSummon* npc = me->SummonCreature(NPC_FORSAKEN_MACHINIST, me->GetPosition()))
+							npc->EnterVehicle(me, 0);
+
+						Reset();
+					}
+					break;
+				}
+				case EVENT_PLAYER_LAUNCH:
+				{
+					if (ObjectAccessor::GetPlayer(*me, m_playerGUID))
+					{
+						me->CastSpell(me, 96185, true); // trigger spell 66251 (Aura Id 144 (SPELL_AURA_SAFE_FALL)
+					}
+
+					m_events.ScheduleEvent(EVENT_PLAYER_LANDING, 5000);
+					break;
+				}
+				case EVENT_PLAYER_LANDING:
+				{
+
+					m_events.RescheduleEvent(EVENT_MASTER_RESET, 10000);
+					m_playerGUID = ObjectGuid::Empty;
+
+					break;
+				}
+				}
+			}
+		}
+	};
+
+	CreatureAI* GetAI(Creature* creature) const override
+	{
+		return new npc_forsaken_catapult_36283AI(creature);
+	}
+};
+
+
 void AddSC_gilneas()
 {
     new npc_gilneas_city_guard_phase1();
@@ -3101,4 +3293,8 @@ void AddSC_gilneas()
     new npc_bloodfang_stalker_c1();
     new npc_gilnean_crow();
     new npc_captured_riding_bat();
+	new npc_cynthia_36287();
+	new npc_ashley_36289();
+	new npc_james_36288();
+	new npc_forsaken_catapult_36283();
 }

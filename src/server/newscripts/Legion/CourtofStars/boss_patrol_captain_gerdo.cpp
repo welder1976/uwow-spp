@@ -6,7 +6,9 @@
 */
 
 #include "ScriptMgr.h"
+#include "ScriptedGossip.h"
 #include "ScriptedCreature.h"
+#include "SpellScript.h"
 #include "court_of_stars.h"
 
 enum Says
@@ -283,6 +285,8 @@ public:
         void IsSummonedBy(Unit* summoner) override
         {
             me->GetMotionMaster()->MovePath(9100402, false);  //213505
+			me->setFaction(35);
+			me->SetFlag(UNIT_FLAG_IMMUNE_TO_PC, UNIT_FLAG_PACIFIED);
             timer = 13000;
             event = false;
         }
@@ -309,7 +313,7 @@ public:
                 else
                 {
                     if (Unit* owner = me->ToTempSummon()->GetSummoner())
-                        owner->CastSpell(owner, 208703, true);
+                        //owner->CastSpell(owner, 208703, true);
                     me->DespawnOrUnsummon(3000);
                 }
             } else timer -= diff;

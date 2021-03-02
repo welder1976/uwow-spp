@@ -280,7 +280,7 @@ public:
                             SetData(DATA_EGG_EVENT, IN_PROGRESS);
                         ++EggCount;
                         if (EggCount < 15)
-                            this->DoSendNotifyToInstance("%i eggs left.", 15-EggCount);
+                            this->DoSendNotifyToInstance("Осталось %i яиц.", 15-EggCount);
                         else if (EggCount == 15)
                         {
                             if (Creature* razor = instance->GetCreature(RazorgoreTheUntamedGUID))
