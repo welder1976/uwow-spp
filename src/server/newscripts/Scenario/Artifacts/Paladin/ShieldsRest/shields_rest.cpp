@@ -6,6 +6,7 @@
 #include "ScriptMgr.h"
 #include "ScriptedCreature.h"
 #include "shields_rest.h"
+#include "ScriptedGossip.h"
 
 //Phases: 6363
 
@@ -71,7 +72,7 @@ public:
                         if (instance->getScenarionStep() == DATA_STAGE_1)
                         {
                             instance->DoUpdateAchievementCriteria(CRITERIA_TYPE_SCRIPT_EVENT_2, 50497); //Step 2
-                            me->SummonCreature(NPC_DRAKE_SHAE, 4804.64f, 148.32f, 22.38f, 4.38f);
+                            me->SummonCreature(NPC_DRAKE_SHAE, 4803.92f, 152.88f, -1.97f, 4.4f);
                             if (Creature* cato = me->FindNearestCreature(NPC_CATO_INTRO, 20.0f, true))
                                 cato->DespawnOrUnsummon();
                             me->DespawnOrUnsummon();
@@ -334,12 +335,27 @@ public:
 
         void Reset() override
         {
-            events.Reset();
-            if (checkFall)
-            {
-                SetFlyMode(true);
-                me->GetMotionMaster()->MovePoint(0, 4807.0f, 148.82f, -7.3f);
-            }
+			events.Reset();
+			if (me->GetEntry() == NPC_DRAKE_SHAE)
+			{
+				if (checkFall)
+				{
+					SetFlyMode(true);
+					me->GetMotionMaster()->MovePoint(0, 4805.98f, 148.60f, -16.3f);
+				}
+
+			}
+
+			events.Reset();
+			if (me->GetEntry() == NPC_INNA_THE_CRYPTSTALKER)
+			{
+				if (checkFall)
+				{
+					SetFlyMode(false);
+					me->GetMotionMaster()->MovePoint(0, 4805.98f, 148.60f, -16.5f);
+				}
+
+			}
         }
 
         void IsSummonedBy(Unit* summoner) override
@@ -437,7 +453,7 @@ public:
                 switch (eventId)
                 {
                     case EVENT_1: //Drake
-                        me->GetMotionMaster()->MovePoint(1, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ() - 22.0f);
+                        me->GetMotionMaster()->MovePoint(1, me->GetPositionX(), me->GetPositionY(), me->GetPositionZ() - 5.0f);
                         break;
                     case EVENT_2: //Inna
                         Talk(0);
@@ -453,7 +469,7 @@ public:
                         break;
                     case EVENT_5: //Inna
                         DoCastVictim(SPELL_INNA_SHOOT);
-                        events.RescheduleEvent(EVENT_5, 5000);
+                        events.RescheduleEvent(EVENT_5, 6000);
                         break;
                     case EVENT_6: //Inna
                         if (Unit* target = SelectTarget(SELECT_TARGET_RANDOM, 0, 30.0f, false))

@@ -176,6 +176,7 @@ class Spell
     friend class SpellScript;
     friend class AreaTrigger;
     public:
+		Trinity::AnyData Variables;
         void EffectNULL(SpellEffIndex effIndex);
         void EffectUnused(SpellEffIndex effIndex);
         void EffectDistract(SpellEffIndex effIndex);

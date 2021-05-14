@@ -32,6 +32,7 @@
 #include <iostream>
 #include <openssl/crypto.h>
 
+#include "DatabaseLoader.h"
 #include "AppenderDB.h"
 #include "Common.h"
 #include "DatabaseEnv.h"
@@ -55,8 +56,8 @@ using namespace boost::program_options;
 #if PLATFORM == PLATFORM_WINDOWS
 #include "ServiceWin32.h"
 char serviceName[] = "bnetserver";
-char serviceLongName[] = "SPP Legion V2 bnet service";
-char serviceDescription[] = "SPP Legion V2 Battle.net emulator authentication service";
+char serviceLongName[] = "NordrassilCore bnet service";
+char serviceDescription[] = "NordrassilCore Battle.net emulator authentication service";
 /*
 * -1 - not in service mode
 *  0 - stopped
@@ -272,29 +273,12 @@ bool StartDB()
 {
     MySQL::Library_Init();
 
-    std::string dbstring = sConfigMgr->GetStringDefault("LoginDatabaseInfo", "");
-    if (dbstring.empty())
-    {
-        TC_LOG_ERROR(LOG_FILTER_BATTLENET, "Database not specified");
-        return false;
-    }
+	DatabaseLoader loader("server.bnetserver", DatabaseLoader::DATABASE_NONE);
+	loader
+		.AddDatabase(LoginDatabase, "Login");
 
-    int32 worker_threads = sConfigMgr->GetIntDefault("LoginDatabase.WorkerThreads", 1);
-    if (worker_threads < 1 || worker_threads > 32)
-    {
-        TC_LOG_ERROR(LOG_FILTER_BATTLENET, "Improper value specified for LoginDatabase.WorkerThreads, defaulting to 1.");
-        worker_threads = 1;
-    }
-
-    int32 synch_threads = sConfigMgr->GetIntDefault("LoginDatabase.SynchThreads", 1);
-    if (synch_threads < 1 || synch_threads > 32)
-    {
-        TC_LOG_ERROR(LOG_FILTER_BATTLENET, "Improper value specified for LoginDatabase.SynchThreads, defaulting to 1.");
-        synch_threads = 1;
-    }
-
-    if (!LoginDatabase.Open(dbstring, uint8(worker_threads), uint8(synch_threads)))
-        return false;
+	if (!loader.Load())
+		return false;
 
     TC_LOG_INFO(LOG_FILTER_BATTLENET, "Started auth database connection pool.");
     sLog->SetRealmID(0); // Enables DB appenders when realm is set.
@@ -318,7 +302,7 @@ void KeepDatabaseAliveHandler(boost::system::error_code const& error)
 {
     if (!error)
     {
-        TC_LOG_DEBUG(LOG_FILTER_BATTLENET, "Ping MySQL to keep connection alive");
+        TC_LOG_INFO(LOG_FILTER_BATTLENET, "Ping MySQL to keep connection alive");
         LoginDatabase.KeepAlive();
 
         _dbPingTimer->expires_from_now(boost::posix_time::minutes(_dbPingInterval));

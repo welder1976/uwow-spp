@@ -317,6 +317,7 @@ void AddSC_boss_foereaper5000();
 void AddSC_boss_admiral_ripsnarl();
 void AddSC_boss_captain_cookie();
 void AddSC_boss_vanessa_vancleef();
+void AddSC_gilneas();
 void AddSC_gnomeregan();                     //Gnomeregan
 void AddSC_instance_gnomeregan();
 void AddSC_boss_attumen();                   //Karazhan
@@ -517,7 +518,6 @@ void AddSC_boss_garajal();
 void AddSC_boss_spirit_kings();
 void AddSC_boss_elegon();
 void AddSC_boss_will_of_emperor();
-
 void AddSC_instance_heart_of_fear();                // Heart of Fear
 void AddSC_boss_vizier_zorlok();
 void AddSC_boss_lord_tayak();
@@ -525,10 +525,8 @@ void AddSC_boss_garalon();
 void AddSC_boss_lord_meljarak();
 void AddSC_boss_unsok();
 void AddSC_boss_empress_shekzeer();
-
-// MoP raids - Terrace of Endless Spring
-void AddSC_instance_terrace_of_endless_spring();
-void AddSC_terrace_of_endless_spring();
+void AddSC_instance_terrace_of_endless_spring();    // Terrace of Endless Spring
+//void AddSC_terrace_of_endless_spring();
 void AddSC_boss_protectors_of_the_endless();
 void AddSC_boss_tsulong();
 void AddSC_boss_lei_shi();
@@ -567,7 +565,7 @@ void AddSC_boss_garrosh_hellscream();
 void AddSC_valley_of_the_four_winds();
 void AddSC_krasarang_wilds();
 void AddSC_kun_lai_summit();
-
+void AddSC_jade_forest();
 void AddSC_WanderingIsland();
 void AddSC_timeless_isle();
 
@@ -748,14 +746,14 @@ void AddSC_instance_army_training();
 
 void AddSC_instance_temple_of_the_jade_serpent();
 
-void AddSC_brawlers_guild();
-void AddSC_brawlers_guild_bosses_rank_one();
-void AddSC_brawlers_guild_bosses_rank_two();
-void AddSC_brawlers_guild_bosses_rank_three();
-void AddSC_brawlers_guild_bosses_rank_four();
-void AddSC_brawlers_guild_bosses_rank_five();
-void AddSC_brawlers_guild_bosses_rank_six();
-void AddSC_brawlers_guild_bosses_rank_seven();
+void AddSC_the_brawlers_guild();
+void AddSC_the_brawlers_guild_bosses_rank_one();
+void AddSC_the_brawlers_guild_bosses_rank_two();
+void AddSC_the_brawlers_guild_bosses_rank_three();
+void AddSC_the_brawlers_guild_bosses_rank_four();
+void AddSC_the_brawlers_guild_bosses_rank_five();
+void AddSC_the_brawlers_guild_bosses_rank_six();
+void AddSC_the_brawlers_guild_bosses_rank_seven();
 
 // battlegrounds
 
@@ -1104,6 +1102,7 @@ void AddEasternKingdomsScripts()
     AddSC_boss_admiral_ripsnarl();
     AddSC_boss_captain_cookie();
     AddSC_boss_vanessa_vancleef();
+	AddSC_gilneas();                     //Gilneas
     AddSC_gnomeregan();                     //Gnomeregan
     AddSC_instance_gnomeregan();
     AddSC_boss_attumen();                   //Karazhan
@@ -1311,7 +1310,6 @@ void AddPandarieScripts()
     AddSC_boss_spirit_kings();
     AddSC_boss_elegon();
     AddSC_boss_will_of_emperor();
-
     AddSC_instance_heart_of_fear();                //Heart of Fear
     AddSC_boss_vizier_zorlok();
     AddSC_boss_lord_tayak();
@@ -1319,15 +1317,12 @@ void AddPandarieScripts()
     AddSC_boss_lord_meljarak();
     AddSC_boss_unsok();
     AddSC_boss_empress_shekzeer();
-
-    // Pandaria Raids - Terrace of Endless Spring
-    AddSC_instance_terrace_of_endless_spring();
-    AddSC_terrace_of_endless_spring();
-    AddSC_boss_protectors_of_the_endless();
-    AddSC_boss_tsulong();
+    AddSC_instance_terrace_of_endless_spring();    //Terrace of Endless Spring
+	//AddSC_terrace_of_endless_spring();
+	AddSC_boss_protectors_of_the_endless();
+	AddSC_boss_tsulong();
     AddSC_boss_lei_shi();
     AddSC_boss_sha_of_fear();
-
     AddSC_instance_throne_of_thunder();            // Throne of Thunder
     AddSC_boss_jinrokh();
     AddSC_boss_horridon();
@@ -1362,7 +1357,7 @@ void AddPandarieScripts()
     AddSC_valley_of_the_four_winds();
     AddSC_krasarang_wilds();
     AddSC_kun_lai_summit();
-
+	AddSC_jade_forest();
     AddSC_WanderingIsland();
     AddSC_timeless_isle();
 
@@ -1526,13 +1521,13 @@ void AddPandarieScripts()
     
     AddSC_instance_temple_of_the_jade_serpent();
     
-    AddSC_brawlers_guild();
-    AddSC_brawlers_guild_bosses_rank_one();
-    AddSC_brawlers_guild_bosses_rank_two();
-    AddSC_brawlers_guild_bosses_rank_three();
-    AddSC_brawlers_guild_bosses_rank_four();
-    AddSC_brawlers_guild_bosses_rank_five();
-    AddSC_brawlers_guild_bosses_rank_six();
-    AddSC_brawlers_guild_bosses_rank_seven();
+    AddSC_the_brawlers_guild();
+    AddSC_the_brawlers_guild_bosses_rank_one();
+    AddSC_the_brawlers_guild_bosses_rank_two();
+    AddSC_the_brawlers_guild_bosses_rank_three();
+    AddSC_the_brawlers_guild_bosses_rank_four();
+    AddSC_the_brawlers_guild_bosses_rank_five();
+    AddSC_the_brawlers_guild_bosses_rank_six();
+    AddSC_the_brawlers_guild_bosses_rank_seven();
 #endif
 }

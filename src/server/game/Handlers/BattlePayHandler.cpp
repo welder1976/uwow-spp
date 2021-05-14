@@ -21,6 +21,7 @@
 #include "ObjectMgr.h"
 #include "ScriptMgr.h"
 #include "DatabaseEnv.h"
+#include "Bag.h"
 
 auto GetBagsFreeSlots = [](Player* player) -> uint32
 {
@@ -65,8 +66,8 @@ auto SendPurchaseUpdate = [](WorldSession* session, Battlepay::Purchase const& p
 void WorldSession::HandleGetPurchaseListQuery(WorldPackets::BattlePay::GetPurchaseListQuery& /*packet*/)
 {
     WorldPackets::BattlePay::PurchaseListResponse packet;
-    //uint32 Result = 0;
-    //std::vector<WorldPackets::BattlePay::BattlePayPurchase> Purchase;
+    uint32 Result = 0;
+    std::vector<WorldPackets::BattlePay::BattlePayPurchase> Purchase;
     SendPacket(packet.Write());
 }
 
@@ -185,7 +186,6 @@ auto MakePurchase = [](ObjectGuid targetCharacter, uint32 clientToken , uint32 p
             return;
         }
     }
-
     purchaseData->PurchaseID = mgr->GenerateNewPurchaseID();
     purchaseData->ServerToken = urand(0, 0xFFFFFFF);
     //purchaseData->Status = Battlepay::UpdateStatus::Ready; ?
@@ -197,6 +197,7 @@ auto MakePurchase = [](ObjectGuid targetCharacter, uint32 clientToken , uint32 p
     confirmPurchase.PurchaseID = purchaseData->PurchaseID;
     confirmPurchase.ServerToken = purchaseData->ServerToken;
     session->SendPacket(confirmPurchase.Write());
+   
 };
 
 void WorldSession::HandleBattlePayStartPurchase(WorldPackets::BattlePay::StartPurchase& packet)
@@ -282,9 +283,27 @@ void WorldSession::HandleBattlePayConfirmPurchase(WorldPackets::BattlePay::Confi
     }
 
     SendPurchaseUpdate(this, *purchase, Battlepay::Error::Other);
-
-    GetBattlePayMgr()->SavePurchase(purchase);
+	uint32 blc = player->GetDonateTokens() - purchase->CurrentPrice;
+    //GetBattlePayMgr()->SavePurchase(purchase, player->GetDonateTokens(), blc);
     GetBattlePayMgr()->ProcessDelivery(purchase);
+    player->DestroyDonateTokenCount((purchase->CurrentPrice) / 2);
+
+	uint32 _nextId = 1;
+
+	if (QueryResult result = LoginDatabase.Query("SELECT MAX(id) FROM store_purchase_history"))
+	{
+		uint32 Id = (*result)[0].GetUInt32();
+		_nextId = Id + 1;
+		
+		LoginDatabase.PExecute("INSERT INTO `store_purchase_history` (`id`, `account`, `bnetaccountId`, `charGuid`, `charLevel`, `productId`, `balanceInitial`, `balanceEnd`, `charRace`, `charFaction`) VALUES (%u, %u, %u, %u, %u, %u, %u, %u, %u, %u);", _nextId, player->GetSession()->GetAccountId(), player->GetSession()->GetBattlenetAccountId(), player ? player->GetGUIDLow() : 0, player->getLevel(), purchase->ProductID, player->GetDonateTokens(), blc, player->getRace(), player->getFaction());
+		
+	}
+	else
+	{
+		LoginDatabase.PExecute("INSERT INTO `store_purchase_history` (`id`, `account`, `bnetaccountId`, `charGuid`, `charLevel`, `productId`, `balanceInitial`, `balanceEnd`, `charRace`, `charFaction`) VALUES (%u, %u, %u, %u, %u, %u, %u, %u, %u, %u);", 1, player->GetSession()->GetAccountId(), player->GetSession()->GetBattlenetAccountId(), player ? player->GetGUIDLow() : 0, player->getLevel(), purchase->ProductID, player->GetDonateTokens(), blc, player->getRace(), player->getFaction());
+	}
+
+	
 }
 
 void WorldSession::HandleBattlePayAckFailedResponse(WorldPackets::BattlePay::BattlePayAckFailedResponse& /*packet*/)
@@ -321,9 +340,9 @@ void WorldSession::SendDisplayPromo(int32 promotionID /*= 0*/)
     if (!GetBattlePayMgr()->IsAvailable())
         return;
 
-    //SendPacket(WorldPackets::BattlePay::BattlepayUnk(2).Write());
+    SendPacket(WorldPackets::BattlePay::BattlepayUnk(2).Write());
 
-    /*
+    
     auto player = GetPlayer();
     auto const& product = sBattlePayDataStore->GetProduct(109);
     WorldPackets::BattlePay::DistributionListResponse packet;
@@ -344,13 +363,13 @@ void WorldSession::SendDisplayPromo(int32 promotionID /*= 0*/)
     pProduct.Flags = product.Flags;
     pProduct.Type = product.Type;
     //pProduct.UnkBits Optional<uint16> ;
-    //pProduct.UnkInt1 = 0;
-    //pProduct.DisplayId = 0;
-    //pProduct.ItemId = 0;
-    //pProduct.UnkInt4 = 0;
-    //pProduct.UnkInt5 = 0;
-    //pProduct.UnkString = "";
-    //pProduct.UnkBit = false;
+    pProduct.UnkInt1 = 0;
+    pProduct.DisplayId = 0;
+    pProduct.ItemId = 0;
+    pProduct.UnkInt4 = 0;
+    pProduct.UnkInt5 = 0;
+    pProduct.UnkString = "";
+    pProduct.UnkBit = false;
 
     for (auto& itr : product.Items)
     {
@@ -358,9 +377,9 @@ void WorldSession::SendDisplayPromo(int32 promotionID /*= 0*/)
         pItem.ID = itr.ID;
         pItem.ItemID = product.Items.size() > 1 ? 0 : itr.ItemID; ///< Disable tooltip for packs (client handle only one tooltip).
         pItem.Quantity = itr.Quantity;
-        //pItem.UnkInt1 = 0;
-        //pItem.UnkInt2 = 0;
-        //pItem.UnkByte = 0;
+        pItem.UnkInt1 = 0;
+        pItem.UnkInt2 = 0;
+        pItem.UnkByte = 0;
         pItem.HasPet = GetBattlePayMgr()->AlreadyOwnProduct(itr.ItemID);
         pItem.PetResult = itr.PetResult;
 
@@ -387,5 +406,5 @@ void WorldSession::SendDisplayPromo(int32 promotionID /*= 0*/)
     packet.DistributionObject.emplace_back(data);
 
     SendPacket(packet.Write());
-    */
+    
 }

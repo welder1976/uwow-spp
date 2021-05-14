@@ -299,7 +299,7 @@ public:
                     allari->AI()->AttackStart(me);
                 }
             }
-            events.RescheduleEvent(EVENT_1, 6000); // 215925
+            events.RescheduleEvent(EVENT_1, 10000); // 215925
             events.RescheduleEvent(EVENT_2, 10000); // add  not repeat
             events.RescheduleEvent(EVENT_3, 7000); // not repeat
         }

@@ -591,6 +591,8 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                 }
                 break;
             }
+			default:
+				break;
         }
 
         if (m_originalCaster)
@@ -623,6 +625,7 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                 combopoints = 0;
                 break;
             }
+			case 235904: // Mana Rift
             case 203286: // Greater Pyroblast (Honor Talent)
             case 203728: // Thorns
                 m_damage = unitTarget->CountPctFromMaxHealth(damage);
@@ -731,6 +734,34 @@ void Spell::EffectSchoolDMG(SpellEffIndex effIndex)
                         m_damage += CalculatePct(m_damage, aurEff->GetAmount());
                 break;
             }
+			// Lightning Rod
+			case 188196: // Lightning Bolt 
+			case 188443: // Chain Lightning
+			{
+				if (Aura* lightingRod =  m_caster->GetAura(210689)) // Lightning Rod talent
+				{
+					std::list<Unit*> targets;
+					m_caster->GetAttackableUnitListInRange(targets, 100.0f);
+					targets.remove_if(Trinity::UnitAuraCheck(false, 197209, m_caster->GetGUID())); // Lightning Rod buff
+					float rodDmg = CalculatePct(m_damage, lightingRod->GetEffect(EFFECT_1)->GetAmount());
+
+					for (auto itr : targets)
+					{
+						m_caster->CastCustomSpell(itr, 197568, &rodDmg, NULL, NULL, true); // Lightning Rod Damage
+					}
+				}
+				break;
+			}
+			case 219271: // Icefury Overload
+			case 45284: // Lightning Bolt Overload
+			{
+				// Elemental Focus
+				if (Aura* ElementalFocus = m_caster->GetAura(16246))
+				{
+					ElementalFocus->DropCharge();
+				}
+				break;
+			}
         }
     }
 }
@@ -2037,6 +2068,23 @@ void Spell::EffectPlayerMoveWaypoints(SpellEffIndex effIndex)
 
 void Spell::EffectTeleportUnits(SpellEffIndex effIndex)
 {
+	if (effectHandleMode == SPELL_EFFECT_HANDLE_LAUNCH && m_spellInfo->Id == 18960) // Spell druid teleport Moonglade
+	{
+		if (Player* caster = m_caster->ToPlayer())
+		{
+			if (caster->GetZoneId() != 493) // Moonglade zone id
+			{
+				caster->SaveRecallPosition();
+				caster->TeleportTo(1, 7991, -2679, 513, caster->GetOrientation());
+			}
+			else
+			{
+				caster->TeleportTo(caster->m_recallLoc); // Position to return
+			}
+			return;
+		}
+	}
+
     if (effectHandleMode != SPELL_EFFECT_HANDLE_HIT_TARGET)
         return;
 
@@ -2275,7 +2323,7 @@ void Spell::EffectApplyAura(SpellEffIndex effIndex)
             break;
         }
     }
-
+	
     ASSERT(unitTarget == m_spellAura->GetOwner());
     m_spellAura->_ApplyEffectForTargets(effIndex);
     if (_triggeredCastFlags & TRIGGERED_CASTED_BY_AREATRIGGER)
@@ -2401,6 +2449,12 @@ void Spell::EffectPowerBurn(SpellEffIndex effIndex)
 
     if (!unitTarget || !unitTarget->isAlive() /*|| unitTarget->getPowerType() != powerType */ || damage < 0)
         return;
+
+	if (m_spellInfo->Id == 235904) // Spell_dh Mana Rift 
+		damage = unitTarget->CountPctFromMaxMana(GetSpellInfo()->Effects[effIndex]->CalcValue(GetCaster()));
+
+	if (m_spellInfo->Id == 22568 && (m_caster->HasAura(102543)|| m_caster->HasAura(106951))) // Ferocid Bite
+		damage = 12.0f;
 
     int32 newDamage = -(unitTarget->ModifyPower(powerType, -damage, true));
 
@@ -2597,6 +2651,28 @@ void Spell::EffectHeal(SpellEffIndex effIndex)
                 }
                 break;
             }
+			case 81269:
+			{
+				if (m_spellInfo->HasAttribute(SPELL_ATTR3_NO_DONE_BONUS))
+					break;
+				if (Unit* Owner = m_caster->GetOwner())
+				{
+					if (Aura* aura = Owner->GetAura(77495)) // Mastery: Harmony
+					{
+						float modDif = 0.f;
+						int32 modCount = 0;
+						if (AuraEffect* eff = aura->GetEffect(EFFECT_0))
+							modDif = eff->GetAmount();
+						if (Unit::AuraEffectList const* mPeriodic = unitTarget->GetAuraEffectsByType(SPELL_AURA_PERIODIC_HEAL))
+							for (Unit::AuraEffectList::const_iterator i = mPeriodic->begin(); i != mPeriodic->end(); ++i)
+								if ((*i)->GetCasterGUID() == Owner->GetGUID())
+									modCount++;
+						if (modCount && modDif)
+							addhealth += CalculatePct(addhealth, modDif * modCount);
+					}
+				}
+				break;
+			}
             default:
                 break;
         }
@@ -2641,29 +2717,19 @@ void Spell::EffectHeal(SpellEffIndex effIndex)
                 if (m_spellInfo->HasAttribute(SPELL_ATTR3_NO_DONE_BONUS))
                     break;
 
-                Aura* aura = m_caster->GetAura(77495); // Mastery: Harmony
-                if (!aura)
-                    break;
-
-                float modDif = 0.f;
-                uint32 modCount = 0;
-                uint32 modMaxCount = 9;
-                if (AuraEffect* eff = aura->GetEffect(EFFECT_1))
-                    modMaxCount = eff->GetAmount();
-                if (AuraEffect* eff = aura->GetEffect(EFFECT_0))
-                    modDif = eff->GetAmount();
-                if (Unit::AuraEffectList const* mPeriodic = unitTarget->GetAuraEffectsByType(SPELL_AURA_PERIODIC_HEAL))
-                {
-                    for (Unit::AuraEffectList::const_iterator i = mPeriodic->begin(); i != mPeriodic->end(); ++i)
-                    {
-                        if ((*i)->GetCasterGUID() == m_caster->GetGUID())
-                            modCount++;
-                        if (modCount >= modMaxCount)
-                            break;
-                    }
-                }
-                if (modCount && modDif)
-                    addhealth += CalculatePct(addhealth, modDif * modCount);
+				if (Aura* aura = m_caster->GetAura(77495)) // Mastery: Harmony
+				{
+					float modDif = 0.f;
+					int32 modCount = 0;
+					if (AuraEffect* eff = aura->GetEffect(EFFECT_0))
+						modDif = eff->GetAmount();
+					if (Unit::AuraEffectList const* mPeriodic = unitTarget->GetAuraEffectsByType(SPELL_AURA_PERIODIC_HEAL))
+						for (Unit::AuraEffectList::const_iterator i = mPeriodic->begin(); i != mPeriodic->end(); ++i)
+							if ((*i)->GetCasterGUID() == m_caster->GetGUID())
+								modCount++;
+					if (modCount && modDif)
+						addhealth += CalculatePct(addhealth, modDif * modCount);
+				}
                 break;
             }
             case CLASS_PALADIN:
@@ -3825,6 +3891,18 @@ void Spell::EffectSummonType(SpellEffIndex effIndex)
             }
             break;
         }
+		case 98167: // Void Tendril
+		{
+			if (Aura* aura = m_caster->GetAura(193371)) // Call to the Void
+			{
+				aura->SetAuraAttribute(AURA_ATTR_IS_NOT_ACTIVE, true);
+				m_caster->AddDelayedEvent(3000, [aura]() -> void
+				{
+					aura->SetAuraAttribute(AURA_ATTR_IS_NOT_ACTIVE, false);
+				});
+			}
+			break;
+		}
         default:
             break;
     }
@@ -5001,9 +5079,12 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
             float pctDamage = m_caster->CanPvPScalar() ? m_spellInfo->GetEffect(EFFECT_2, m_diffMode)->CalcValue(_caster) / 2 : m_spellInfo->GetEffect(EFFECT_2, m_diffMode)->CalcValue(_caster);
             int32 lastTime = m_spellInfo->GetEffect(EFFECT_3, m_diffMode)->CalcValue(_caster);
             int32 pctHeal = m_spellInfo->GetEffect(EFFECT_4, m_diffMode)->CalcValue(_caster);
-            float bp = _caster->CountPctFromMaxHealth(pctHeal) + CalculatePct(_caster->GetDamageTakenInPastSecs(lastTime, true, true), pctDamage);
+            //float bp = _caster->CountPctFromMaxHealth(pctHeal) + CalculatePct(_caster->GetDamageTakenInPastSecs(lastTime, true, true), pctDamage);
+			int32 heal1 = _caster->CountPctFromMaxHealth(pctHeal);
+			int32 heal2 = CalculatePct(_caster->GetDamageTakenInPastSecs(lastTime, true, true), pctDamage);
+			float bp = std::max(heal1, heal2);
 
-            _caster->CastCustomSpell(_caster, 45470, &bp, nullptr, nullptr, false);
+			_caster->CastCustomSpell(_caster, 45470, &bp, nullptr, nullptr, false);
             break;
         }
         case 53: // Backstab
@@ -5035,6 +5116,23 @@ void Spell::EffectWeaponDmg(SpellEffIndex effIndex)
             }
             break;
         }
+		case 199850 : //  Whirlwind Last Hit
+		{
+			if (Aura* CleaveBonus = _caster->GetAura(188923)) // Cleave bonus damage done
+			{
+				if (CleaveBonus->Variables.Exist("Whirlwind"))
+				{
+					CleaveBonus->Variables.Remove("Whirlwind");
+					_caster->RemoveAurasDueToSpell(188923);
+				}
+				else
+					CleaveBonus->Variables.Set("Whirlwind", true);
+			}
+				
+			break;
+		}
+		default:
+			break;
     }
 }
 
@@ -6672,7 +6770,7 @@ void Spell::EffectLeap(SpellEffIndex /*effIndex*/)
     Position pos = static_cast<Position>(*m_targets.GetDstPos());
     unitTarget->AddUnitState(UNIT_STATE_JUMPING);
 
-    // TC_LOG_DEBUG(LOG_FILTER_SPELLS_AURAS, "EffectLeap If %i, X %f, Y %f, Z %f", m_spellInfo->Id, pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ());
+    // sLog->outDebug(LOG_FILTER_SPELLS_AURAS, "EffectLeap If %i, X %f, Y %f, Z %f", m_spellInfo->Id, pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ());
 
     unitTarget->NearTeleportTo(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), pos.GetOrientation(), unitTarget == m_caster, false);
 }
@@ -9476,21 +9574,29 @@ void Spell::EffectObliterateItem(SpellEffIndex /*effIndex*/)
                     case 13311: // Legion Season 6
                     {
                         currencyId = 1356;
-                        if (proto->ItemLevel == 810) // Combatant
-                            addCount = 1;
-                        else if (itemLevel < 940) // Gladiator
-                            addCount = 1;
-                        else
-                            addCount = 15;
+						if(proto->ItemLevel <= 810) // Combatant
+							addCount = 1;
+						else // Gladiator
+							addCount = 15;
+                        //if (proto->ItemLevel == 810) // Combatant
+                        //    addCount = 1;
+                        //else if (itemLevel < 940) // Gladiator
+                        //    addCount = 1;
+                        //else
+                        //    addCount = 15;
                         break;
                     }
                     case 13313: // Legion Season 6 Elite
                     {
                         currencyId = 1357;
-                        if (itemLevel < 950)
+						if(itemLevel <= 810)
+							addCount = 1;
+						else
+							addCount = 15;
+                        /*if (itemLevel < 950)
                             addCount = 1;
                         else
-                            addCount = 15;
+                            addCount = 15;*/
                         break;
                     }
                     case 13312: // Legion Season 7
@@ -9533,22 +9639,34 @@ void Spell::EffectObliterateItem(SpellEffIndex /*effIndex*/)
             {
                 case 13311: // Legion Season 6
                 {
-                    currencyId = 1356;
-                    if (proto->ItemLevel == 810) // Combatant
-                        addCount = 1;
-                    else if (itemLevel < 930) // Gladiator
-                        addCount = 1;
-                    else
-                        addCount = 15;
+					currencyId = 1356;
+					if (itemLevel <= 810) // Combatant
+						addCount = 1;
+					else // Gladiator
+						addCount = 15;
+
+                    //currencyId = 1356;
+                    //if (proto->ItemLevel == 810) // Combatant
+                    //    addCount = 1;
+                    //else if (itemLevel < 930) // Gladiator
+                    //    addCount = 1;
+                    //else
+                    //    addCount = 15;
                     break;
                 }
                 case 13313: // Legion Season 6 Elite
                 {
-                    currencyId = 1357;
+					currencyId = 1357;
+					if (itemLevel <= 810)
+						addCount = 1;
+					else
+						addCount = 15;
+
+                    /*currencyId = 1357;
                     if (itemLevel < 940)
                         addCount = 1;
                     else
-                        addCount = 15;
+                        addCount = 15;*/
                     break;
                 }
                 case 13312: // Legion Season 7

@@ -30,6 +30,8 @@
 #include <openssl/crypto.h>
 #include <openssl/opensslv.h>
 
+
+#include "DatabaseLoader.h"
 #include "AsyncAcceptor.h"
 #include "BattlegroundMgr.h"
 #include "BigNumber.h"
@@ -75,8 +77,8 @@ using namespace boost::program_options;
 #ifdef _WIN32
 #include "ServiceWin32.h"
 char serviceName[] = "worldserver";
-char serviceLongName[] = "SPP Legion V2 world service";
-char serviceDescription[] = "SPP Legion V2 World of Warcraft emulator world service";
+char serviceLongName[] = "NordrassilCore world service";
+char serviceDescription[] = "NordrassilCore World of Warcraft emulator world service";
 /*
  * -1 - not in service mode
  *  0 - stopped
@@ -277,7 +279,7 @@ extern int main(int argc, char **argv)
         Log::instance(nullptr/*&_ioService*/);
     }
 
-    //TC_LOG_INFO(LOG_FILTER_WORLDSERVER, "%s (worldserver-daemon) ready...", GitRevision::GetFullVersion());
+    TC_LOG_INFO(LOG_FILTER_WORLDSERVER, "%s (worldserver-daemon) ready...", GitRevision::GetFullVersion());
 
     sScriptMgr->OnStartup();
 
@@ -446,7 +448,7 @@ bool LoadRealmInfo()
     realm.PopulationLevel = fields[10].GetFloat();
     realm.Id.Region = fields[12].GetUInt8();
     realm.Id.Site = fields[13].GetUInt8();
-    realm.Build = sConfigMgr->GetIntDefault("Game.Build.Version", 26972);
+    realm.Build = fields[11].GetUInt32();
     return true;
 }
 
@@ -657,106 +659,16 @@ bool StartDB()
 {
     MySQL::Library_Init();
 
-    std::string dbString = sConfigMgr->GetStringDefault("WorldDatabaseInfo", "");
-    if (dbString.empty())
-    {
-        TC_LOG_ERROR(LOG_FILTER_WORLDSERVER, "World database not specified in configuration file");
-        return false;
-    }
+	// Load databases
+	DatabaseLoader loader("server.worldserver", DatabaseLoader::DATABASE_NONE);
+	loader
+		.AddDatabase(LoginDatabase, "Login")
+		.AddDatabase(CharacterDatabase, "Character")
+		.AddDatabase(WorldDatabase, "World")
+		.AddDatabase(HotfixDatabase, "Hotfix");
 
-    uint8 asyncThreads = uint8(sConfigMgr->GetIntDefault("WorldDatabase.WorkerThreads", 1));
-    if (asyncThreads < 1 || asyncThreads > 32)
-    {
-        TC_LOG_ERROR(LOG_FILTER_WORLDSERVER, "World database: invalid number of worker threads specified. "
-            "Please pick a value between 1 and 32.");
-        return false;
-    }
-
-    uint8 synchThreads = uint8(sConfigMgr->GetIntDefault("WorldDatabase.SynchThreads", 1));
-    ///- Initialize the world database
-    if (!WorldDatabase.Open(dbString, asyncThreads, synchThreads))
-    {
-        TC_LOG_ERROR(LOG_FILTER_WORLDSERVER, "Cannot connect to world database %s", dbString.c_str());
-        return false;
-    }
-
-    ///- Get character database info from configuration file
-    dbString = sConfigMgr->GetStringDefault("CharacterDatabaseInfo", "");
-    if (dbString.empty())
-    {
-        TC_LOG_ERROR(LOG_FILTER_WORLDSERVER, "Character database not specified in configuration file");
-        return false;
-    }
-
-    asyncThreads = uint8(sConfigMgr->GetIntDefault("CharacterDatabase.WorkerThreads", 1));
-    if (asyncThreads < 1 || asyncThreads > 32)
-    {
-        TC_LOG_ERROR(LOG_FILTER_WORLDSERVER, "Character database: invalid number of worker threads specified. "
-            "Please pick a value between 1 and 32.");
-        return false;
-    }
-
-    synchThreads = uint8(sConfigMgr->GetIntDefault("CharacterDatabase.SynchThreads", 2));
-
-    ///- Initialize the Character database
-    if (!CharacterDatabase.Open(dbString, asyncThreads, synchThreads))
-    {
-        TC_LOG_ERROR(LOG_FILTER_WORLDSERVER, "Cannot connect to Character database %s", dbString.c_str());
-        return false;
-    }
-
-    ///- Get login database info from configuration file
-    dbString = sConfigMgr->GetStringDefault("LoginDatabaseInfo", "");
-    if (dbString.empty())
-    {
-        TC_LOG_ERROR(LOG_FILTER_WORLDSERVER, "Login database not specified in configuration file");
-        return false;
-    }
-
-    asyncThreads = uint8(sConfigMgr->GetIntDefault("LoginDatabase.WorkerThreads", 1));
-    if (asyncThreads < 1 || asyncThreads > 32)
-    {
-        TC_LOG_ERROR(LOG_FILTER_WORLDSERVER, "Login database: invalid number of worker threads specified. "
-            "Please pick a value between 1 and 32.");
-        return false;
-    }
-
-    synchThreads = uint8(sConfigMgr->GetIntDefault("LoginDatabase.SynchThreads", 1));
-    ///- Initialise the login database
-    if (!LoginDatabase.Open(dbString, asyncThreads, synchThreads))
-    {
-        TC_LOG_ERROR(LOG_FILTER_WORLDSERVER, "Cannot connect to login database %s", dbString.c_str());
-        return false;
-    }
-
-    dbString = sConfigMgr->GetStringDefault("HotfixDatabaseInfo", "");
-    if (dbString.empty())
-    {
-        TC_LOG_ERROR(LOG_FILTER_WORLDSERVER, "Hotfix database not specified in configuration file");
-        return false;
-    }
-
-    asyncThreads = uint8(sConfigMgr->GetIntDefault("HotfixDatabase.WorkerThreads", 1));
-    if (asyncThreads < 1 || asyncThreads > 32)
-    {
-        TC_LOG_ERROR(LOG_FILTER_WORLDSERVER, "Hotfix database: invalid number of worker threads specified. "
-            "Please pick a value between 1 and 32.");
-        return false;
-    }
-
-    synchThreads = uint8(sConfigMgr->GetIntDefault("HotfixDatabase.SynchThreads", 1));
-    if (!HotfixDatabase.Open(dbString, asyncThreads, synchThreads))
-    {
-        TC_LOG_ERROR(LOG_FILTER_WORLDSERVER, "Cannot connect to world database %s", dbString.c_str());
-        return false;
-    }
-
-    dbString = sConfigMgr->GetStringDefault("HotfixDatabaseInfo", "");
-    if (dbString.empty())
-    {
-        TC_LOG_ERROR(LOG_FILTER_WORLDSERVER, "Hotfix database not specified in configuration file");
-        return false;
-    }
+	if (!loader.Load())
+		return false;
 
     ///- Get the realm Id from the configuration file
     realm.Id.Realm = sConfigMgr->GetIntDefault("RealmID", 0);

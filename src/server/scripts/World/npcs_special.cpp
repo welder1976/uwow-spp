@@ -271,7 +271,20 @@ public:
                 }
             }
         }
-
+		void SpellFinishCast(SpellInfo const* spell) 
+		{
+			if (Unit* target = me->getVictim())
+			{
+				if (spell->Id != 228287) // Mark of the Crane
+					me->AddAura(228287, target);
+				if (spell->Id == 222029) // Mainhand Strike of the Windlord
+				{
+					me->PlaySpellVisual(target->GetPosition(), 53860, 2.0f, target->GetGUID(), false); // Visual
+					me->AddAura(222029,target); // DECREASE_SPEED
+					me->CastSpellDelay(target, 205414, true, 500); // Offhand Strike of the Windlord
+				}
+			}
+		}
 		void UpdateAI(uint32 diff) override
 		{
 			if (me->HasUnitState(UNIT_STATE_CASTING))
@@ -287,6 +300,7 @@ public:
 						} Need more knowledge how to prevent jade lightning from interrupting */
 
 			Unit* target = nullptr;
+			target = me->getVictim();
 
 			if (sWorld->getBoolConfig(CONFIG_PLAYER_CONTROL_GUARDIAN_PETS))
 			{
@@ -294,7 +308,7 @@ public:
 				{
 					if (Player* player = owner->ToPlayer())
 					{
-						target = player->GetSelectedUnit();
+						//target = player->GetSelectedUnit();
 						if (!target)
 							target = owner->getAttackerForHelper();
 						if (!target)
@@ -354,6 +368,9 @@ public:
 
 		void jumpToSummoner(Unit* target)
 		{
+			if (!target)
+				return;
+
 			if (me->GetDistance(target) <= 35.0f && me->GetDistance(target) >= 10.0f && jumpToOwner)
 			{
 				me->CastSpell(target, 138104, true);
@@ -4553,6 +4570,16 @@ class npc_wild_imp : public CreatureScript
                     return;
 
 				if (sWorld->getBoolConfig(CONFIG_PLAYER_CONTROL_GUARDIAN_PETS))
+
+					if (!me->getVictim())
+						return;
+					
+					if (me->getVictim() == nullptr)
+						return;
+
+					if (!me->getVictim()->isAlive())
+						return;
+
 					if (!me->getVictim()->IsWithinLOSInMap(me) || me->getVictim()->GetDistance(me) > 35.f)
 					{
 						Follow(me->getVictim());

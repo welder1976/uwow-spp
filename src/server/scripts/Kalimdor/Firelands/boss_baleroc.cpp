@@ -1,5 +1,6 @@
 #include "firelands.h"
 
+
 enum ScriptTexts
 {
     SAY_AGGRO       = 0,

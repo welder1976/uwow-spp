@@ -489,7 +489,7 @@ void World::LoadConfigSettings(bool reload)
     }
 
     ///- Read the player limit and the Message of the day from the config file
-    SetPlayerAmountLimit(50);
+    SetPlayerAmountLimit(sConfigMgr->GetIntDefault("PlayerLimit", 100));
     SetMotd(sConfigMgr->GetStringDefault("Motd", "Welcome to a Trinity Core Server."));
 
     ///- Read ticket system setting from the config file
@@ -1549,18 +1549,12 @@ void World::LoadConfigSettings(bool reload)
 
 	m_bool_configs[CONFIG_AUTO_SAY_HELLO] = sConfigMgr->GetBoolDefault("Auto.Say.Hello", false);
 
-    // lasyan3 patches
-    m_float_configs[CONFIG_SPEED_GAME] = sConfigMgr->GetFloatDefault("Custom.SpeedGame", 1.0f);
-    m_bool_configs[CONFIG_NO_CAST_TIME] = sConfigMgr->GetBoolDefault("Custom.NoCastTime", false);
-    m_bool_configs[CONFIG_HURT_IN_REAL_TIME] = sConfigMgr->GetBoolDefault("Custom.HurtInRealTime", false);
-
-	// XP for PvP
-	rate_values[CONFIG_XP_FOR_PVP_LOW_RATE] = sConfigMgr->GetFloatDefault("Xp.For.Pvp.Low.Rate", 1.0f);
-	rate_values[CONFIG_XP_FOR_PVP_HIGH_RATE] = sConfigMgr->GetFloatDefault("Xp.For.Pvp.High.Rate", 1.0f);
-
-	// Honor for elites and guards
-	m_bool_configs[CONFIG_GAIN_HONOR_GUARD] = sConfigMgr->GetBoolDefault("Custom.GainHonorOnGuardKill", false);
-	m_bool_configs[CONFIG_GAIN_HONOR_ELITE] = sConfigMgr->GetBoolDefault("Custom.GainHonorOnEliteKill", false);
+	// PvP Template Stads
+	m_int_configs[CONFIG_PVP_TEMPLATE_MAIN_STAD] = sConfigMgr->GetIntDefault("PvP.TemplateMainStad", 0);
+	m_int_configs[CONFIG_PVP_TEMPLATE_STAMINA_STAD] = sConfigMgr->GetIntDefault("PvP.TemplateStaminaStad", 0);
+	m_int_configs[CONFIG_PVP_TEMPLATE_SECUNDARY_STAD] = sConfigMgr->GetIntDefault("PvP.TemplateSecondaryStad", 0);
+	// Enable Custom stad for each spialization
+	m_bool_configs[CONFIG_ENABLE_CUSTOM_STAD] = sConfigMgr->GetBoolDefault("Pvp.EnableCustomStad", false);
 
     sAnticheatMgr->LoadConfig();
 
@@ -2300,6 +2294,9 @@ void World::SetInitialWorldSettings()
 
     TC_LOG_INFO(LOG_FILTER_GENERAL, "Loading garrisons...");
     sGarrisonMgr.Initialize();
+
+	TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, "Loading Custom Pvp Penalizations...");
+	sWorld->LoadCustomPvpPenalizations();
 
     sBattlePetDataStore->Initialize();
     sWildBattlePetMgr->Load();
@@ -4776,3 +4773,47 @@ CliCommandHolder::~CliCommandHolder()
 
 GlobalMessageData::GlobalMessageData(WorldPacket const* _packet, WorldSession* _self, uint32 _team) : packet(*_packet), self(_self), team(_team)
 {}
+
+// Get penalizations for a specialization 
+int32 World::GetCustomPvpPenalizations(uint32 specialization, PvpPenalizationType type)
+{
+	for (auto itr = CustomPvpPenalizations.begin(); itr != CustomPvpPenalizations.end(); itr++)
+	{
+		if ((*itr).first == specialization)
+		{
+			return (*itr).second[type];
+		}
+	}
+	return 0;
+}
+
+// Update Custom Penalizacion from world.custom_pvp_penalizations
+void World::LoadCustomPvpPenalizations()
+{
+	uint32 oldMSTime = getMSTime();
+	CustomPvpPenalizations.clear();
+
+	QueryResult result = WorldDatabase.Query("SELECT * FROM `custom_pvp_penalizations`;");
+
+	if (!result)
+	{
+		TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, ">> Loaded 0 custom pvp penalizations. DB table `custom_pvp_penalizations` is empty.");
+		return;
+	}
+
+	uint32 count = 0;
+	do
+	{
+		Field* fields = result->Fetch();
+		uint32 specid = fields[0].GetUInt32();
+		std::vector<int32> Penalizations;
+		Penalizations.push_back(fields[2].GetInt32()); // Damage
+		Penalizations.push_back(fields[3].GetInt32()); // Healing
+		Penalizations.push_back(fields[4].GetInt32()); // Mastery
+		// save penalization
+		CustomPvpPenalizations.insert(std::make_pair(specid, Penalizations));
+		count++;
+	} while (result->NextRow());
+
+	TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, ">> Loaded %u custom pvp penalization in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
+}

@@ -1,7 +1,12 @@
+
 #include "OutdoorPvP.h"
 #include "OutdoorPvPMgr.h"
 #include "ScenarioMgr.h"
 #include "PetBattle.h"
+#include "ScriptedCreature.h"
+#include "Creature.h"
+#include "GameEventMgr.h"
+#include "ScriptMgr.h"
 
 // 107249 small vignette
 

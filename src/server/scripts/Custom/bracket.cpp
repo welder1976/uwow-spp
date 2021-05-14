@@ -55,19 +55,8 @@ public:
     //! 0 - MS::Battlegrounds::BracketType::Arena2v2, 3 - MS::Battlegrounds::BracketType::RatedBattleground, look at enum of BracketType
     static bool HandleJoinCommand(ChatHandler* handler, const char* args)
     {
-        if (!*args)
-        {
-            handler->SendSysMessage(LANG_CMD_SYNTAX);
-            handler->SetSentErrorMessage(true);
-            return false;
-        }
-
-        char* br = strtok((char*)args, " ");
-        uint8 BracketID = atoi(br);
-        if (BracketID >= MS::Battlegrounds::BracketType::Max)
-            return false;
-
-        handler->GetSession()->JoinBracket(BracketID);
+       
+        handler->GetSession()->JoinBracket(MS::Battlegrounds::BracketType::RatedBattleground);
         return true;
     }
 };

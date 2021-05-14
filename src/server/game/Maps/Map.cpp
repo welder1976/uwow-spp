@@ -2602,12 +2602,19 @@ uint16 GridMap::getArea(float x, float y) const
 {
     if (!_areaMap)
         return _gridArea;
-
-    x = 16 * (CENTER_GRID_ID - x / SIZE_OF_GRIDS);
-    y = 16 * (CENTER_GRID_ID - y / SIZE_OF_GRIDS);
-    int lx = static_cast<int>(x) & 15;
-    int ly = static_cast<int>(y) & 15;
-    return _areaMap[lx * 16 + ly];
+	// Corrigiendo crash en blanco lx y ly no se hace null , lo q salen fuera de rango porq no esta comiplado en debug
+	try
+	{
+		x = 16 * (CENTER_GRID_ID - x / SIZE_OF_GRIDS);
+		y = 16 * (CENTER_GRID_ID - y / SIZE_OF_GRIDS);
+		int lx = static_cast<int>(x) & 15;
+		int ly = static_cast<int>(y) & 15;
+		return _areaMap[lx * 16 + ly];
+	}
+	catch (const std::exception&)
+	{
+		return _gridArea;
+	}
 }
 
 float GridMap::getHeightFromFlat(float /*x*/, float /*y*/) const

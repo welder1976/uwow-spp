@@ -358,6 +358,13 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_REP_PLAYER_CURRENCY, "REPLACE INTO character_currency (guid, currency, week_count, total_count, season_total, flags, curentcap) VALUES (?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
 
 
+	//Log GM
+	 // Logs
+	PrepareStatement(CHAR_LOG_GM_COMMAND, "INSERT INTO `log_gm` (`id`, `date`, "
+		"`gm_account_id`, `gm_account_name`, `gm_character_id`, `gm_character_name`, `gm_ip`, "
+		"`target_account_id`, `target_account_name`, `target_character_id`, `target_character_name`, `target_ip`, `command`) "
+		"VALUES (0, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+
     // Account data
     PrepareStatement(CHAR_SEL_ACCOUNT_DATA, "SELECT type, time, data FROM account_data WHERE accountId = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_REP_ACCOUNT_DATA, "REPLACE INTO account_data (accountId, type, time, data) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);

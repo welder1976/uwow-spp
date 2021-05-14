@@ -1,8 +1,8 @@
 # output generic information about the core and buildtype chosen
 message("")
-message("* EpicWoW revision   : ${rev_hash} ${rev_date} (${rev_branch} branch)")
+message("* NordrassilCore revision   : ${rev_hash} ${rev_date} (${rev_branch} branch)")
 if( UNIX )
-  message("* EpicWoW buildtype  : ${CMAKE_BUILD_TYPE}")
+  message("* NordrassilCore buildtype  : ${CMAKE_BUILD_TYPE}")
 endif()
 message("")
 

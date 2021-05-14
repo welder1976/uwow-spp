@@ -1130,6 +1130,7 @@ class spell_sha_forked_lightning_pvp : public SpellScriptLoader
 };
 
 // Spirit Link (Honor Talent) - 204293
+// Modified by ScorpioN7
 class spell_sha_spirit_link_pvp : public SpellScriptLoader
 {
     public:
@@ -1160,6 +1161,7 @@ class spell_sha_spirit_link_pvp : public SpellScriptLoader
             void Register() override
             {
                 OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_sha_spirit_link_pvp_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_DEST_AREA_ALLY);
+				OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_sha_spirit_link_pvp_SpellScript::FilterTargets, EFFECT_2, TARGET_UNIT_DEST_AREA_ALLY);
             }
         };
 

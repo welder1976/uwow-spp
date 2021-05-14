@@ -494,7 +494,7 @@ bool PlayerCheatData::HandleAnticheatTests(MovementInfo& movementInfo, WorldSess
         // detect new flyhack (these two flags should never happen at the same time)
         if ((moveFlags & MOVEMENTFLAG_FLYING) && !(me->HasAuraType(SPELL_AURA_FLY) || me->HasAuraType(SPELL_AURA_MOD_INCREASE_VEHICLE_FLIGHT_SPEED)
             || me->HasAuraType(SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED) || me->HasAuraType(SPELL_AURA_MOD_INCREASE_FLIGHT_SPEED)
-            || me->HasAuraType(SPELL_AURA_MOD_MOUNTED_FLIGHT_SPEED_ALWAYS)))
+            || me->HasAuraType(SPELL_AURA_MOD_MOUNTED_FLIGHT_SPEED_ALWAYS) || me->HasAura(53173)))
         {
             for (auto &order : _orders)
             {
@@ -1145,7 +1145,7 @@ bool PlayerCheatData::HandleCustomAnticheatTests(uint32 opcode, MovementInfo& mo
         // detect new flyhack (these two flags should never happen at the same time)
         if ((moveFlags & MOVEMENTFLAG_FLYING) && !(mover->HasAuraType(SPELL_AURA_FLY) || mover->HasAuraType(SPELL_AURA_MOD_INCREASE_VEHICLE_FLIGHT_SPEED)
             || mover->HasAuraType(SPELL_AURA_MOD_INCREASE_MOUNTED_FLIGHT_SPEED) || mover->HasAuraType(SPELL_AURA_MOD_INCREASE_FLIGHT_SPEED)
-            || mover->HasAuraType(SPELL_AURA_MOD_MOUNTED_FLIGHT_SPEED_ALWAYS)))
+            || mover->HasAuraType(SPELL_AURA_MOD_MOUNTED_FLIGHT_SPEED_ALWAYS) || me->HasAura(53173)))
         {
             AddCheats(1 << CHEAT_TYPE_FLY_HACK);
             removeMoveFlags |= MOVEMENTFLAG_FLYING;

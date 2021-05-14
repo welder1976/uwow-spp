@@ -187,7 +187,8 @@ namespace VMAP
             instanceTree->second->UnloadMap(this);
             if (instanceTree->second->numLoadedTiles() == 0)
             {
-                delete instanceTree->second;
+				if(instanceTree->second) // Corrigiendo crash no se puede hacer un delete a un objeto que ya esta Null o vacio
+					delete instanceTree->second;
                 instanceTree->second = nullptr;
             }
         }

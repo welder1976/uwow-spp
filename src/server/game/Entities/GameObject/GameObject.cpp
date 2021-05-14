@@ -2303,9 +2303,9 @@ void GameObject::Use(Unit* user)
     if (!spellInfo)
     {
         if (!user->IsPlayer() || !sOutdoorPvPMgr->HandleCustomSpell(user->ToPlayer(), spellId, this))
-            TC_LOG_DEBUG(LOG_FILTER_GENERAL, "WORLD: unknown spell id %u at use action for gameobject (Entry: %u GoType: %u)", spellId, GetEntry(), GetGoType());
+            TC_LOG_ERROR(LOG_FILTER_GENERAL, "WORLD: unknown spell id %u at use action for gameobject (Entry: %u GoType: %u)", spellId, GetEntry(), GetGoType());
         else
-            TC_LOG_DEBUG(LOG_FILTER_GENERAL, "WORLD: %u non-dbc spell was handled by OutdoorPvP", spellId);
+            TC_LOG_ERROR(LOG_FILTER_GENERAL, "WORLD: %u non-dbc spell was handled by OutdoorPvP", spellId);
         return;
     }
 
@@ -3198,14 +3198,15 @@ public:
     bool IsSpawned() const override { return _owner->isSpawned(); }
     uint32 GetDisplayId() const override { return _owner->GetDisplayId(); }
     uint8 GetNameSetId() const override { return _owner->GetNameSetId(); }
-    bool InSamePhaseId(std::set<uint32> const& phases) const override { return _owner->InSamePhaseId(phases); }
-    uint32 GetPhaseMask() const override { return _owner->GetPhaseMask(); }
+	//bool IsInPhase(std::set<uint32> const& phases) const override { return _owner->GetPhases()}
+    bool InSamePhaseId(std::set<uint32> const& phases) const override { return _owner->InSamePhaseId(phases);; }
+   // uint32 GetPhaseMask() const override { return _owner->GetPhaseMask(); }
     G3D::Vector3 GetPosition() const override { return G3D::Vector3(_owner->GetPositionX(), _owner->GetPositionY(), _owner->GetPositionZ()); }
     float GetOrientation() const override { return _owner->GetOrientation(); }
     float GetScale() const override { return _owner->GetObjectScale(); }
-    bool IsDoor() const override  { return _owner->GetGoType() == GAMEOBJECT_TYPE_DOOR; }
-    GameObject const* GetOwner() const override  { return _owner; }
-    uint32 GetGUIDLow() const override  { return _owner->GetGUIDLow(); }
+    //bool IsDoor() const override  { return _owner->GetGoType() == GAMEOBJECT_TYPE_DOOR; }
+   // GameObject const* GetOwner() const override  { return _owner; }
+   // uint32 GetGUIDLow() const override  { return _owner->GetGUIDLow(); }
 
     void DebugVisualizeCorner(G3D::Vector3 const& corner) const override
     {

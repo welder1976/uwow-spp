@@ -4,6 +4,16 @@
 [bnetserver]
 
 ###################################################################################################
+# SECTION INDEX
+#
+#    EXAMPLE CONFIG
+#    AUTH SERVER SETTINGS
+#    MYSQL SETTINGS
+#    LOGGING SYSTEM SETTINGS
+#
+###################################################################################################
+
+###################################################################################################
 # GAME VERSION SETTINGS #
 #########################
 #
@@ -15,18 +25,8 @@
 #   Available builds: 26124, 26365, 26654, 26822, 26899, 26972
 #            Default: 26124
 
-Game.Build.Version = 26365
+Game.Build.Version = 26124
 
-#
-###################################################################################################
-
-###################################################################################################
-# SECTION INDEX
-#
-#    EXAMPLE CONFIG
-#    AUTH SERVER SETTINGS
-#    MYSQL SETTINGS
-#    LOGGING SYSTEM SETTINGS
 #
 ###################################################################################################
 
@@ -54,7 +54,7 @@ Game.Build.Version = 26365
 #                     Logs directory must exists, or log file creation will be disabled.
 #        Default:     "" - (Log files will be stored in the current path)
 
-LogsDir = ""
+LogsDir = "Logs"
 
 #
 #    MaxPingTime
@@ -277,8 +277,10 @@ LoginDatabase.WorkerThreads = 1
 #                         Example:  536870912 (512 mb)
 #
 
-Appender.Console=1,2,0
-Appender.Bnet=2,2,0,Bnet.log,w
+Appender.Console=1,2,0,13 7 11 10 3 1
+Appender.Bnet=2,2,0,Bnet.log,a
+
+Appenders=Console Bnet
 
 #  Logger config values: Given a logger "name"
 #    Logger.name
@@ -298,10 +300,15 @@ Appender.Bnet=2,2,0,Bnet.log,w
 #                     (Using spaces as separator).
 #
 
-Logger.root=3,Console Bnet
-Logger.realmlist=3,Console Bnet
-Logger.session=3,Console Bnet
-Logger.session.packets=3,Console Bnet
+Logger.Root=0,3,Console Bnet
+Logger.Realmlist=44,3,Console Bnet
+Logger.Bnet=45,3,Console Bnet
+Logger.Session=47,3,Console Bnet
+Logger.SQL=26,3,Console Bnet
+Logger.SQLDriver=36,3,Console Bnet
+Logger.NetworkInfo=7,3,Console Bnet
+
+Loggers=Root Realmlist Bnet Session SQL SQLDriver NetworkInfo
 
 #
 ###################################################################################################

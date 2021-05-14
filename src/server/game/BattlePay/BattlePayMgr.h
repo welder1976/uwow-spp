@@ -48,17 +48,17 @@ class WorldSession;
 //    };
 //};
 //
-//namespace BattlepayDisplayFlag
-//{
-//    enum : uint8
-//    {
-//        None = 0x00,
-//        CardDoesNotShowModel = 0x02,
-//        CardAlwaysShowsTexture = 0x04,
-//        HiddenPrice = 0x08,
-//        UseHorizontalLayoutForFullCard = 0x10,
-//    };
-//};
+namespace BattlepayDisplayFlag
+{
+    enum : uint8
+   {
+       None = 0x00,
+       CardDoesNotShowModel = 0x02,
+       CardAlwaysShowsTexture = 0x04,
+       HiddenPrice = 0x08,
+       UseHorizontalLayoutForFullCard = 0x10,
+    };
+};
 //
 //namespace StoreDeliveryType
 //{
@@ -308,6 +308,54 @@ namespace Battlepay
         CategoryGold = 26,
         CharacterBoost = 29,
         BattlePet = 30,
+		AppareanceArtifac = 31,
+		// Monedas
+		Gold1 = 32,
+		Gold2 = 33,
+		Gold3 = 34,
+		Gold4 = 35,
+		Gold5 = 36,
+		Gold6 = 37,
+		Currency1 = 38,
+		Currency2 = 39,
+		// Profesiones Primarias
+		ProfPriAlchemy = 40,
+		ProfPriSastre = 41,
+		ProfPriJoye = 42,
+		ProfPriHerre = 43,
+		ProfPriPele = 44,
+		ProfPriInge = 45,
+		ProfPriInsc = 46,
+		ProfPriEncha = 47,
+		ProfPriDesu = 48,
+		ProfPriMing = 49,
+		ProfPriHerb = 50,
+		// Profesiones Secundarias
+		ProfSecCoci = 51,
+		ProfSecPrau = 52,
+		ProfSecArque = 53,
+		ProfSecFish = 54,
+		Promo = 55,
+		// Subir Reputaciones
+		RepClassic = 56,
+		RepBurnig = 57,
+		RepTLK = 58,
+		RepCata = 59,
+		RepPanda = 60,
+		RepDraenor = 61,
+		RepLegion = 62,
+		Unbinall = 63,
+		PremadePve = 64,
+		PremadePvp = 65,
+		VueloDL = 66,
+		ArtifactPower = 67,
+		// Razas Aliadas
+		RacesAlliedVoidElf = 68,
+		RacesAlliedLighForgedDraenei = 69,
+		RacesAlliedNightborne = 70,
+		RacesAlliedHighmountainTauren = 71,
+		ArtifactPower101 = 72,
+		HonorLvl = 73,
 
         MaxWebsiteType
     };

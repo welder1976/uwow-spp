@@ -671,7 +671,7 @@ class areatrigger_at_fuse : public AreaTriggerScript
     }
 };
 
-void AddSC_brawlers_guild_bosses_rank_five()
+void AddSC_the_brawlers_guild_bosses_rank_five()
 {
     new npc_brawguild_thwack_u_controller();
     new boss_brawguild_thwack_u();

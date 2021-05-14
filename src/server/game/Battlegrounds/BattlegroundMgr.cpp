@@ -596,7 +596,7 @@ void BattlegroundMgr::CreateInitialBattlegrounds()
     uint32 oldMSTime = getMSTime();
 
     //                                               0   1                 2              3       4           5
-    QueryResult result = WorldDatabase.Query("SELECT id, AllianceStartLoc, HordeStartLoc, Weight, ScriptName, MinPlayersPerTeam FROM battleground_template");
+    QueryResult result = WorldDatabase.Query("SELECT id, AllianceStartLoc, HordeStartLoc, Weight, ScriptName, MinPlayersPerTeam  FROM battleground_template");
     if (!result)
     {
         TC_LOG_ERROR(LOG_FILTER_SERVER_LOADING, ">> Loaded 0 battlegrounds. DB table `battleground_template` is empty.");
@@ -634,6 +634,7 @@ void BattlegroundMgr::CreateInitialBattlegrounds()
         data.MapID = bl->MapID[0];
         data.IsBrawl = bl->Flags & 32;
         data.MaxGroupSize = bl->MaxGroupSize;
+
         uint32 startId = fields[1].GetUInt32();
         if (WorldSafeLocsEntry const* start = sWorldSafeLocsStore.LookupEntry(startId))
             data.TeamStartLoc[TEAM_ALLIANCE].SetPosition(start->Loc);
@@ -685,14 +686,12 @@ void BattlegroundMgr::CreateInitialBattlegrounds()
             }
                 
         }
-        ///  TODO
         else if (bl->MapID[1] <= 0 && bl->MapID[0] != 1101) // no deathmatch
             _selectionWeights[MS::Battlegrounds::IternalPvpTypes::Battleground][data.bgTypeId] = selectionWeight;
 
         CreateBattleground(data);
         ++count;
-    } 
-    while (result->NextRow());
+    } while (result->NextRow());
 
     TC_LOG_INFO(LOG_FILTER_SERVER_LOADING, ">> Loaded %u battlegrounds in %u ms", count, GetMSTimeDiffToNow(oldMSTime));
 }

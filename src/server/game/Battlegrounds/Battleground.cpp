@@ -20,7 +20,6 @@
 #include "Battleground.h"
 #include "BattlegroundMgr.h"
 #include "BattlegroundPackets.h"
-#include "BattlegroundDM.h"
 #include "Bracket.h"
 #include "BracketMgr.h"
 #include "ChatPackets.h"
@@ -802,36 +801,6 @@ void Battleground::EndBattleground(uint32 winner)
        }
     }
 
-    if (IsArena() && GetJoinType() == MS::Battlegrounds::JoinType::Arena1v1)
-    {
-        for (auto const& playerItr : GetPlayers())
-        {
-            Player* player = GetPlayer(playerItr, "EndBattleground");
-            uint32 team = playerItr.second.Team;
-            if (!player)
-                continue;
-
-            auto playerScore = PlayerScores.find(playerItr.first);
-            if (playerScore != PlayerScores.end())
-            {
-                player->ModifyDeathMatchStats(playerScore->second->GetScore(SCORE_KILLING_BLOWS), playerScore->second->GetScore(SCORE_DEATHS), playerScore->second->GetScore(SCORE_DAMAGE_DONE),
-                    BattlegroundDeathMatch::CalculateRating(playerScore->second), playerScore->second->GetScore(SCORE_KILLING_BLOWS));
-            }
-            else
-            {
-                uint8 killingBlows = team == winner;
-                uint8 deaths = !killingBlows;
-                int64 damage = player->GetMaxHealth();
-                player->ModifyDeathMatchStats(killingBlows, deaths, damage,
-                    BattlegroundDeathMatch::CalculateRating(killingBlows, deaths, damage), killingBlows);
-            }
-
-            player->DeMorph();
-            player->ResetCustomDisplayId();
-            player->SetObjectScale(1.0f);
-        }
-    }
-
     WorldPackets::Battleground::PVPLogData pvpLogData;
     BuildPvPLogDataPacket(pvpLogData);
     SendPacketToAll(pvpLogData.Write());
@@ -1414,6 +1383,17 @@ void Battleground::AddPlayer(Player* player)
         }
         else
         {
+
+			if (player->HasAura(193472))
+			{
+				player->CastSpell(player, 193864, true);
+				player->CastSpell(player, 195838, true);
+			}
+			else if (player->HasAura(193475))
+			{
+				player->CastSpell(player, 193863, true);
+				player->CastSpell(player, 195843, true);
+			}
             player->RemoveArenaSpellCooldowns(true);
         }
     }
@@ -1656,33 +1636,51 @@ uint32 Battleground::GetInvitedCount(uint32 team) const
 
 uint32 Battleground::GetFreeSlotsForTeam(uint32 Team) const
 {
-    if (GetStatus() == STATUS_WAIT_JOIN)
-        return GetInvitedCount(Team) < GetMaxPlayersPerTeam() ? GetMaxPlayersPerTeam() - GetInvitedCount(Team) : 0;
 
-    uint32 otherTeam = GetInvitedCount(Team == ALLIANCE ? HORDE : ALLIANCE);
-    uint32 otherIn = GetPlayersCountByTeam(Team == ALLIANCE ? HORDE : ALLIANCE);
+	// if BG is already started or CONFIG_BATTLEGROUND_INVITATION_TYPE != BG_QUEUE_INVITATION_TYPE_NO_BALANCE, do not allow to join too much players of one faction
+	uint32 otherTeamInvitedCount;
+	uint32 thisTeamInvitedCount;
+	uint32 otherTeamPlayersCount;
+	uint32 thisTeamPlayersCount;
 
-    if (GetStatus() == STATUS_IN_PROGRESS)
-    {
-        uint32 diff = 0;
-        if (otherTeam == GetInvitedCount(Team))
-            diff = 1;
-        else if (otherTeam > GetInvitedCount(Team))
-            diff = otherTeam - GetInvitedCount(Team);
+	if (Team == ALLIANCE)
+	{
+		thisTeamInvitedCount = GetInvitedCount(ALLIANCE);
+		otherTeamInvitedCount = GetInvitedCount(HORDE);
+		thisTeamPlayersCount = GetPlayersCountByTeam(ALLIANCE);
+		otherTeamPlayersCount = GetPlayersCountByTeam(HORDE);
+	}
+	else
+	{
+		thisTeamInvitedCount = GetInvitedCount(HORDE);
+		otherTeamInvitedCount = GetInvitedCount(ALLIANCE);
+		thisTeamPlayersCount = GetPlayersCountByTeam(HORDE);
+		otherTeamPlayersCount = GetPlayersCountByTeam(ALLIANCE);
+	}
+	if (GetStatus() == STATUS_IN_PROGRESS || GetStatus() == STATUS_WAIT_JOIN)
+	{
+		uint32 diff = 0;
 
-        uint32 diff2 = GetInvitedCount(Team) < GetMaxPlayersPerTeam() ? GetMaxPlayersPerTeam() - GetInvitedCount(Team) : 0;
-        uint32 diff3 = 0;
-        if (otherIn == GetPlayersCountByTeam(Team))
-            diff3 = 1;
-        else if (otherIn > GetPlayersCountByTeam(Team))
-            diff3 = otherIn - GetPlayersCountByTeam(Team);
-        else if (GetInvitedCount(Team) <= GetMinPlayersPerTeam())
-            diff3 = GetMinPlayersPerTeam() - GetInvitedCount(Team) + 1;
+		if (otherTeamInvitedCount == thisTeamInvitedCount)
+			diff = 1;
+		else if (otherTeamInvitedCount > thisTeamInvitedCount)
+			diff = otherTeamInvitedCount - thisTeamInvitedCount;
 
-        diff = std::min(diff, diff2);
-        return std::min(diff, diff3);
-    }
-    return 0;
+		uint32 diff2 = (thisTeamInvitedCount < GetMaxPlayersPerTeam()) ? GetMaxPlayersPerTeam() - thisTeamInvitedCount : 0;
+
+	
+		uint32 diff3 = 0;
+		if (otherTeamPlayersCount == thisTeamPlayersCount)
+			diff3 = 1;
+		else if (otherTeamPlayersCount > thisTeamPlayersCount)
+			diff3 = otherTeamPlayersCount - thisTeamPlayersCount;
+		else if (thisTeamInvitedCount <= GetMinPlayersPerTeam())
+			diff3 = GetMinPlayersPerTeam() - thisTeamInvitedCount + 1;
+
+		diff = std::min(diff, diff2);
+		return std::min(diff, diff3);
+	}
+	return 0;
 }
 
 bool Battleground::HasFreeSlots() const

@@ -10,14 +10,15 @@
 
 enum Data
 {
-    DB_MENU_ID  = 600023,
-    DB_GOSSIP   = 300000,
+	DB_MENU_ID = 600023,
+	DB_GOSSIP = 300000,
 
-    fishing     = 356,
-    firstaid    = 129,
-    cooking     = 185,
-    archaeology = 794,
+	fishing = 356,
+	firstaid = 129,
+	cooking = 185,
+	archaeology = 794,
 };
+
 
 class npc_quest_restore : public CreatureScript
 {

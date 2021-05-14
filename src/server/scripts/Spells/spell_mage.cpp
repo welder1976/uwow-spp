@@ -1020,8 +1020,23 @@ class spell_mage_displacement : public SpellScriptLoader
                 return SPELL_FAILED_OUT_OF_RANGE;
             }
 
+			void HandleAfterCast()
+			{
+				if (!GetCaster())
+					return;
+
+				if (Player* player = GetCaster()->ToPlayer())
+				{
+					if (player->HasSpellCooldown(1953))
+					{
+						player->RemoveSpellCooldown(1953, true);
+					}
+				}
+			}
+
             void Register() override
             {
+				AfterCast += SpellCastFn(spell_mage_displacement_SpellScript::HandleAfterCast);
                 OnCheckCast += SpellCheckCastFn(spell_mage_displacement_SpellScript::CheckCast);
             }
         };
@@ -1137,6 +1152,7 @@ class spell_mage_living_bomb_damage : public SpellScript
 };
 
 // Shimmer - 212653
+// Modified by ScorpioN7
 class spell_mage_shimmer : public SpellScriptLoader
 {
     public:
@@ -1161,8 +1177,20 @@ class spell_mage_shimmer : public SpellScriptLoader
                 return SPELL_CAST_OK;
             }
 
+			void HandleOnCast() {
+
+				if (Unit* caster = GetCaster()) 
+				{
+					if (caster->ToPlayer()) 
+					{
+						caster->ToPlayer()->ModifySpellCooldown(GetSpellInfo()->Id, 1000);
+					}
+				}
+			}
+
             void Register() override
             {
+				OnCast += SpellCastFn(spell_mage_shimmer_SpellScript::HandleOnCast);
                 OnCheckCast += SpellCheckCastFn(spell_mage_shimmer_SpellScript::CheckCast);
             }
         };
@@ -1997,6 +2025,83 @@ public:
 	}
 };*/
 
+// 108853 Fire Blast
+// Modified by ScorpioN7
+class spell_mage_fire_blast : public SpellScriptLoader
+{
+public:
+	spell_mage_fire_blast() : SpellScriptLoader("spell_mage_fire_blast") { }
+
+	class spell_mage_fire_blast_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_mage_fire_blast_SpellScript);
+
+		void HandleOnCast() {
+			if (Unit* caster = GetCaster()) 
+			{
+				if (caster->ToPlayer()) {
+					caster->ToPlayer()->ModifySpellCooldown(GetSpellInfo()->Id, 500);
+				}
+			}
+		}
+
+		void Register() override
+		{
+			OnCast += SpellCastFn(spell_mage_fire_blast_SpellScript::HandleOnCast);
+		}
+	};
+
+	SpellScript* GetSpellScript() const override
+	{
+		return new spell_mage_fire_blast_SpellScript();
+	}
+};
+
+// Used by 2120 Flamestrike and 11366 Pyroblast
+class spell_mage_hot_streak_big : public SpellScriptLoader
+{
+public:
+	spell_mage_hot_streak_big() : SpellScriptLoader("spell_mage_hot_streak_big") { }
+
+	class spell_mage_hot_streak_big_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_mage_hot_streak_big_SpellScript);
+		enum spellmisc
+		{
+			SPELL_HOT_STREAK = 48108,
+			SPELL_TALENT_PYROMANIAC = 205020,
+		};
+		void HandleAfterCast()
+		{
+			if (Unit* caster = GetCaster())
+			{
+				if (caster->HasAura(SPELL_HOT_STREAK))
+				{
+					caster->RemoveAurasDueToSpell(SPELL_HOT_STREAK);
+					if (AuraEffect* auraEff = caster->GetAuraEffect(SPELL_TALENT_PYROMANIAC, EFFECT_0))
+					{
+						int chance = auraEff->GetAmount();
+						if (roll_chance_i(chance))
+						{
+							caster->CastSpell(caster, SPELL_HOT_STREAK, true);
+						}
+					}
+				}
+			}
+		}
+
+		void Register() override
+		{
+			AfterCast += SpellCastFn(spell_mage_hot_streak_big_SpellScript::HandleAfterCast);
+		}
+	};
+
+	SpellScript* GetSpellScript() const override
+	{
+		return new spell_mage_hot_streak_big_SpellScript();
+	}
+};
+
 void AddSC_mage_spell_scripts()
 {
     new spell_mage_cauterize();
@@ -2039,4 +2144,7 @@ void AddSC_mage_spell_scripts()
     RegisterAuraScript(spell_mage_highblades_will);
     RegisterSpellScript(spell_mage_phoenixs_flames);
 	//new areatrigger_at_mage_frozen_orb();
+
+	new spell_mage_fire_blast();
+	new spell_mage_hot_streak_big();
 }

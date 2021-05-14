@@ -475,7 +475,7 @@ public:
     }
 };
 
-void AddSC_brawlers_guild_bosses_rank_one()
+void AddSC_the_brawlers_guild_bosses_rank_one()
 {
     new boss_brawguild_ooliss();    
     new boss_brawguild_grandpa();

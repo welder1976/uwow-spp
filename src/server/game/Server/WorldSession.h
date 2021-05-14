@@ -1064,7 +1064,7 @@ class WorldSession
         void SendSetPhaseShift(std::vector<WorldPackets::Misc::PhaseShiftDataPhase> phases, std::vector<uint16> const& visibleMapIDs, std::vector<uint16> const& uiWorldMapAreaIDSwaps, std::vector<uint16> const& preloadMapIDs, uint32 phaseShiftFlags = 0x1F);
         void SendQueryTimeResponse();
 
-        void SendAuthResponse(uint8 code, bool queued = false, uint32 queuePos = 0);
+        void SendAuthResponse(uint8 code, bool CharacterTemplate, bool queued = false, uint32 queuePos = 0);
         void SendClientCacheVersion(uint32 version);
         void InitializeSession();
         void InitializeSessionCallback(SQLQueryHolder* realmHolder, SQLQueryHolder* holder);

@@ -390,6 +390,7 @@ class SpellEffectInfo
 {
     SpellInfo const* _spellInfo;
 public:
+	Trinity::AnyData Variables;
     uint32    Effect;
     uint8     EffectIndex;
     uint32    ApplyAuraName;

@@ -10,21 +10,21 @@
 #include "Group.h"
 #include "ObjectMgr.h"
 #include "ScriptMgr.h"
-#include "Chat.h"
-#include "ScriptedGossip.h"
 
 enum Actions
 {
-    MENU_1V1                        = 1000,
-    MENU_DEATHMATCH                 = 1010,
-    MENU_DEATHMATCH_STORE_MORPHS    = 1020,
-    MENU_DEATHMATCH_STORE_LOGO      = 1030,
-    MENU_SOLOQ3V3                   = 1040,
+    MENU_1V1        = 1,
+    MENU_DEATHMATCH,
+    MENU_DEATHMATCH_STORE_MORPHS,
+    MENU_DEATHMATCH_STORE_LOGO,
+    MENU_SOLOQ3V3,
 
-    INVITE_1V1                      = 2000,
-    INVITE_DM                       = 2010,
-    INVITE_DM_PRIVATE               = 2020,
-    INVITE_SOLOQ3V3                 = 2030,
+    INVITE_1V1,
+    INVITE_DM,
+    INVITE_DM_PRIVATE,
+    INVITE_SOLOQ3V3,
+    
+    MENU_DM_MAX
 };
 
 //230003
@@ -35,19 +35,23 @@ public:
 
     bool OnGossipHello(Player* player, Creature* creature) override
     {
-        player->ADD_GOSSIP_ITEM(9, "1v1 Death Arena (Lvl 110 Required)", GOSSIP_SENDER_MAIN, MENU_1V1);
-
-        std::vector<DeathMatchStore> const* store = sObjectMgr->GetDeathMatchStore(DM_TYPE_MORPH);
-        if (store && !store->empty())
-            player->ADD_GOSSIP_ITEM(6, "Store of DeathMatch's morphs", GOSSIP_SENDER_MAIN, MENU_DEATHMATCH_STORE_MORPHS);
-        store = sObjectMgr->GetDeathMatchStore(DM_TYPE_LOGO);
-        if (store && !store->empty())
-            player->ADD_GOSSIP_ITEM(6, "Store of DeathMatch's logos", GOSSIP_SENDER_MAIN, MENU_DEATHMATCH_STORE_LOGO);
+        player->ADD_GOSSIP_ITEM(9, "Arena 1v1", GOSSIP_SENDER_MAIN, MENU_1V1);
         
         if (sWorld->getBoolConfig(CONFIG_ARENA_DEATHMATCH))
+        {
             player->ADD_GOSSIP_ITEM(9, "DeathMatch", GOSSIP_SENDER_MAIN, MENU_DEATHMATCH);
+            std::vector<DeathMatchStore> const* store = sObjectMgr->GetDeathMatchStore(DM_TYPE_MORPH);
+            if (store && !store->empty())
+                player->ADD_GOSSIP_ITEM(6, "Store of DeathMatch's morphs", GOSSIP_SENDER_MAIN, MENU_DEATHMATCH_STORE_MORPHS);
+
+            store = sObjectMgr->GetDeathMatchStore(DM_TYPE_LOGO);
+            if (store && !store->empty())
+                player->ADD_GOSSIP_ITEM(6, "Store of DeathMatch's logos", GOSSIP_SENDER_MAIN, MENU_DEATHMATCH_STORE_LOGO);
+        }
         if (sWorld->getBoolConfig(CONFIG_ARENA_SOLOQ_3v3))
-            player->ADD_GOSSIP_ITEM(9, "3v3 Death Arena", GOSSIP_SENDER_MAIN, MENU_SOLOQ3V3);
+        {
+            player->ADD_GOSSIP_ITEM(9, "SoloQ 3x3", GOSSIP_SENDER_MAIN, MENU_SOLOQ3V3);
+        }
 
         player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
         return true;
@@ -64,9 +68,9 @@ public:
                 {
                     case MENU_1V1:
                         if (player->InBattlegroundQueueForBattlegroundQueueType(MS::Battlegrounds::BattlegroundQueueTypeId::Arena1v1))
-                            player->ADD_GOSSIP_ITEM(9, "You already in the queue on 1v1 Death Arena ", GOSSIP_SENDER_MAIN, 0);
+                            player->ADD_GOSSIP_ITEM(9, "You already in the queue on Arena 1v1 ", GOSSIP_SENDER_MAIN, 0);
                         else
-                            player->ADD_GOSSIP_ITEM(9, "Join in the queue on 1v1 Death Arena", GOSSIP_SENDER_MAIN, INVITE_1V1);
+                            player->ADD_GOSSIP_ITEM(9, "Join in the queue on Arena 1v1", GOSSIP_SENDER_MAIN, INVITE_1V1);
 
                         if (Bracket* bracket = player->getBracket(MS::Battlegrounds::BracketType::Arena1v1))
                         {
@@ -84,19 +88,19 @@ public:
                         else
                         {
                             player->ADD_GOSSIP_ITEM(9, "Join in the queue on DeathMatch", GOSSIP_SENDER_MAIN, INVITE_DM);
-                            player->ADD_GOSSIP_ITEM(0, "Join in the queue on DeathMatch (private for your group without rewards)", GOSSIP_SENDER_MAIN, INVITE_DM_PRIVATE);
+                            //player->ADD_GOSSIP_ITEM(0, "Join in the queue on DeathMatch (private for your group without rewards)", GOSSIP_SENDER_MAIN, INVITE_DM_PRIVATE);
                         }
 
                         if (DeathMatchScore* dmScore = player->getDeathMatchScore())
                         {
                             char printfo[500];
-                            sprintf(printfo, "Your rating of Death Matches = %u", dmScore->rating);
+                            sprintf(printfo, "Your rating of DeathMatch = %u", dmScore->rating);
                             player->ADD_GOSSIP_ITEM(8, printfo, GOSSIP_SENDER_MAIN, 0);
 
                             sprintf(printfo, "Kills by season = %u", dmScore->kills);
                             player->ADD_GOSSIP_ITEM(10, printfo, GOSSIP_SENDER_MAIN, 0);
 
-                            sprintf(printfo, "Deaths by season = %u", dmScore->deaths);
+                            sprintf(printfo, "Deads by season = %u", dmScore->deaths);
                             player->ADD_GOSSIP_ITEM(10, printfo, GOSSIP_SENDER_MAIN, 0);
 
                             sprintf(printfo, "Damage by season = %u", dmScore->damage);
@@ -105,36 +109,38 @@ public:
                             sprintf(printfo, "Matches by season = %u", dmScore->matches);
                             player->ADD_GOSSIP_ITEM(10, printfo, GOSSIP_SENDER_MAIN, 0);
 
-                            sprintf(printfo, "You balance of DeathMatch's currency = %u", dmScore->totalKills);
+                            sprintf(printfo, "You balans of DeathMatch's currency = %u", dmScore->total_kills);
                             player->ADD_GOSSIP_ITEM(8, printfo, GOSSIP_SENDER_MAIN, 0);
                         }
                         player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
                         break;
                     case MENU_SOLOQ3V3:
                         if (player->InBattlegroundQueueForBattlegroundQueueType(MS::Battlegrounds::BattlegroundQueueTypeId::ArenaSoloQ3v3))
-                            player->ADD_GOSSIP_ITEM(9, "You already in the queue on 3v3 Death Arena", GOSSIP_SENDER_MAIN, 0);
+                            player->ADD_GOSSIP_ITEM(9, "You already in the queue on SoloQ 3v3", GOSSIP_SENDER_MAIN, 0);
                         else
-                            player->ADD_GOSSIP_ITEM(9, "Join in the queue on 3v3 Death Arena", GOSSIP_SENDER_MAIN, INVITE_SOLOQ3V3);
+                            player->ADD_GOSSIP_ITEM(9, "Join in the queue on SoloQ 3v3", GOSSIP_SENDER_MAIN, INVITE_SOLOQ3V3);
 
                         if (Bracket* bracket = player->getBracket(MS::Battlegrounds::BracketType::ArenaSoloQ3v3))
                         {
                             char printfo[500];
-                            sprintf(printfo, "Your rating of 3v3 Death Arena (MMR)= %u", bracket->getMMV());
+                            sprintf(printfo, "Your rating of SoloQ 3v3 (MMR)= %u", bracket->getMMV());
                             player->ADD_GOSSIP_ITEM(8, printfo, GOSSIP_SENDER_MAIN, 0);
 
                             PrintInfoAboutBracket(player, bracket);
                         }
                         player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
                         break;
+
                     case INVITE_1V1:
                     case INVITE_SOLOQ3V3:
                         if (player->InBattlegroundQueue())
                         {
-                            ChatHandler(player).PSendSysMessage("You need to leave from the queue!");
+                            ChatHandler(player).PSendSysMessage("You need to leave from queue!");
                             return true;
                         }
+
                         if (!JoinQueueArena(player, (uiAction == INVITE_1V1 ? MS::Battlegrounds::BracketType::Arena1v1 : MS::Battlegrounds::BracketType::ArenaSoloQ3v3)))
-                            ChatHandler(player).PSendSysMessage("Error on the joining to queue. Not Level 110?");
+                            ChatHandler(player).PSendSysMessage("Error on the joining to queue. (Maybe you have wrong specialization");
 
                         player->CLOSE_GOSSIP_MENU();
                         break;
@@ -145,14 +151,16 @@ public:
                             ChatHandler(player).PSendSysMessage("You need to leave from queue!");
                             return true;
                         }
+
                         if (!JoinQueueDeathMatch(player, (uiAction == INVITE_DM_PRIVATE ? true : false)))
-                            ChatHandler(player).PSendSysMessage("Error on the joining to queue. Not Level 110?");
+                            ChatHandler(player).PSendSysMessage("Error on the joining to queue. (Maybe you have wrong specialization");
                         player->CLOSE_GOSSIP_MENU();
                         break;
+
                     case MENU_DEATHMATCH_STORE_MORPHS:
                     {
                         std::stringstream os;
-                        os << "You balanance: " << player->getDeathMatchScore()->totalKills;
+                        os << "You balans: " << player->getDeathMatchScore()->total_kills;
                         
                         player->ADD_GOSSIP_ITEM(0, os.str(), GOSSIP_SENDER_MAIN, 0);
                         player->ADD_GOSSIP_ITEM(6, "Cancel active morph", GOSSIP_SENDER_INN_INFO, 0);
@@ -165,20 +173,20 @@ public:
                                 std::ostringstream ss;
                                 ss << (*itr).name;
                                 if (player->getDeathMatchScore()->HasMorph((*itr).product))
-                                    ss << " |cff00ff00[Bought]|r";
-                                if (player->getDeathMatchScore()->selectedMorph == (*itr).product)
+                                    ss << " |cff00ff00[Buyed]|r";
+                                if (player->getDeathMatchScore()->selected_morph == (*itr).product)
                                     ss << " |cffFF0000[Active]|r";
                                 
                                 player->ADD_GOSSIP_ITEM(6, ss.str(), GOSSIP_SENDER_INN_INFO, (*itr).personal_id);
                             }
                         }
                         player->SEND_GOSSIP_MENU(100012, creature->GetGUID());
-                        break;
                     }
+                    break;
                     case MENU_DEATHMATCH_STORE_LOGO:
                     {
                         std::stringstream os;
-                        os << "You balanance: " << player->getDeathMatchScore()->totalKills;
+                        os << "You balans: " << player->getDeathMatchScore()->total_kills;
                         
                         player->ADD_GOSSIP_ITEM(0, os.str(), GOSSIP_SENDER_MAIN, 0);
                         player->ADD_GOSSIP_ITEM(6, "Cancel active logo", GOSSIP_SENDER_INFO, 0);
@@ -190,16 +198,16 @@ public:
                                 std::ostringstream ss;
                                 ss << (*itr).name;
                                 if (player->hasChatLogo((*itr).logo))
-                                    ss << " |cff00ff00[Bought]|r";
+                                    ss << " |cff00ff00[Buyed]|r";
                                 if (player->getSelectedChatLogo() == (*itr).logo)
                                     ss << " |cffFF0000[Active]|r";
                                 player->ADD_GOSSIP_ITEM(6, ss.str(), GOSSIP_SENDER_INFO, (*itr).personal_id);
                             }
                         }
                         player->SEND_GOSSIP_MENU(100012, creature->GetGUID());
-                        break;
                     }
                     break;
+
                 }
                 break;
             }
@@ -209,7 +217,7 @@ public:
                 if (uiAction ==0)
                 {
                     if (uiSender == GOSSIP_SENDER_INN_INFO) // morph
-                        player->getDeathMatchScore()->selectedMorph = 0;
+                        player->getDeathMatchScore()->selected_morph = 0;
                     else
                         player->setSelectedChatLogo("");
                     break;
@@ -224,16 +232,16 @@ public:
                             {
                                 if (player->getDeathMatchScore()->HasMorph((*temp).product))
                                 {
-                                    player->getDeathMatchScore()->selectedMorph = (*temp).product;
+                                    player->getDeathMatchScore()->selected_morph = (*temp).product;
                                     ChatHandler(player).PSendSysMessage("Was selected morph %u", (*temp).product);
                                 }
                                 else if (player->getDeathMatchScore()->BuyMorph((*temp).product, (*temp).cost))
                                 {
                                     player->SaveToDB();
-                                    ChatHandler(player).PSendSysMessage("Was nought and selected morph %u", (*temp).product);
+                                    ChatHandler(player).PSendSysMessage("Was buyed and selected morph %u", (*temp).product);
                                 }
                                 else
-                                    ChatHandler(player).PSendSysMessage("Your balanance of kills are too low for buying morph!");
+                                    ChatHandler(player).PSendSysMessage("Your balans of kills very low for buying morph!");
                             }
                             else if ((*temp).type == DM_TYPE_LOGO)
                             {
@@ -246,17 +254,16 @@ public:
                                 else if (player->BuyChatLogoByDeathMatch((*temp).logo, (*temp).cost))
                                 {
                                     player->SaveToDB();
-                                    ChatHandler(player).PSendSysMessage("Was bought and selected logo %s", (*temp).logo.c_str());
+                                    ChatHandler(player).PSendSysMessage("Was buyed and selected logo %s", (*temp).logo.c_str());
                                     // player->Say("|cff00ff00 [test message] |r", LANG_UNIVERSAL);
                                 }
                                 else
-                                    ChatHandler(player).PSendSysMessage("Your balanance of kills very low for buying logo!");
+                                    ChatHandler(player).PSendSysMessage("Your balans of kills very low for buying logo!");
                             }
                         }
                     }
                 }
                 player->CLOSE_GOSSIP_MENU();
-                break;
             }
             break;
         }
@@ -385,7 +392,10 @@ public:
     {
         if (!player)
             return false;
-
+        
+        if (!Arena1v1CheckTalents(player))
+            return false;
+        
         if (privated && !player->GetGroup())
             return false;
  
@@ -405,6 +415,7 @@ public:
         {
             ChatHandler(player).PSendSysMessage("BG");
             return false;
+
         }
  
         PVPDifficultyEntry const* bracketEntry = sDB2Manager.GetBattlegroundBracketByLevel(bg->GetMapId(), player->getLevel());
@@ -482,6 +493,7 @@ public:
             return true;
         }
         uint8 err = MS::Battlegrounds::GroupJoinBattlegroundResult::ERR_BATTLEGROUND_NONE;
+        
         Group* grp = player->GetGroup();
         if (!grp || grp->GetLeaderGUID() != player->GetGUID())
             return false;

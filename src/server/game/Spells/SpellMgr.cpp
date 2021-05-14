@@ -3673,7 +3673,8 @@ void SpellMgr::LoadSpellCustomAttr()
         300001, // custom
         137594, // Fortitude Trigger
         137592, // Haste Trigger
-        137595 // Lightning Strike Charges Trigger
+        137595, // Lightning Strike Charges Trigger
+		698, // Ritual of Summoning
     }, [](SpellInfo* spellInfo)
     {
         spellInfo->GetMisc()->MiscData.Attributes[4] |= SPELL_ATTR4_NOT_USABLE_IN_ARENA_OR_RATED_BG;
@@ -4010,7 +4011,6 @@ void SpellMgr::LoadSpellCustomAttr()
     // Atonement
     ApplySpellFix({81751}, [](SpellInfo* spellInfo)
     {
-        spellInfo->GetMisc()->MiscData.Attributes[2] &= ~SPELL_ATTR2_CANT_CRIT;
         spellInfo->GetMisc()->MiscData.Attributes[3] |= SPELL_ATTR3_NO_INITIAL_AGGRO;
     });
 
@@ -4394,7 +4394,6 @@ void SpellMgr::LoadSpellCustomAttr()
         6770,   // Sap
         16870,  // Clearcasting
         143333, // Water Strider Water Walking
-        48108,  // Hot Streak
         124430, // Divine Insight (Shadow)
         144569, // Bastion of Power
         144871, // Sage Mender
@@ -5293,6 +5292,17 @@ void SpellMgr::LoadSpellCustomAttr()
         spellInfo->GetMisc()->MiscData.SchoolMask |= SPELL_SCHOOL_MASK_NORMAL;
     });
 
+	//  Ebonbolt Spell Mage Frost
+	ApplySpellFix({ 214634 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->GetMisc()->MiscData.SchoolMask = SPELL_SCHOOL_MASK_FIRE | SPELL_SCHOOL_MASK_SHADOW;
+	});
+	// 772 Rend Warrior Arm
+	ApplySpellFix({ 772 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->GetMisc()->MiscData.SchoolMask = SPELL_SCHOOL_MASK_NORMAL;
+	});
+
     // DH damage spells custom SM. wtf? why some havoc spells get holy+normal school? Magic absorbs not working with damage
     ApplySpellFix({199547, 222031, 201428, 227518, 211796, 211797, 192611, 202388, 202446, 203704, 217070}, [](SpellInfo* spellInfo)
     {
@@ -5412,7 +5422,11 @@ void SpellMgr::LoadSpellCustomAttr()
         233263,  // Embrace of the Eclipse
         233264,  // Embrace of the Eclipse
         215300,  // Web of Pain
-        215307   // Web of Pain
+        215307,  // Web of Pain
+		194022,  // Mental Fortitude
+		193065,  // Masochism
+		77489,   // Echo of Light heal
+		197336,  // Ray of Hope
     }, [](SpellInfo* spellInfo)
     {
         spellInfo->GetMisc()->MiscData.Attributes[6] |= SPELL_ATTR6_NO_DONE_PCT_DAMAGE_MODS;
@@ -6787,7 +6801,7 @@ void SpellMgr::LoadSpellCustomAttr()
         148014,
         148015,
         148016,
-        212219,
+        //212219,
         235213,
         235240,
         208822,
@@ -7219,12 +7233,6 @@ void SpellMgr::LoadSpellCustomAttr()
     ApplySpellFix({227876}, [](SpellInfo* spellInfo)
     {
         spellInfo->GetMisc()->MiscData.Attributes[5] |= SPELL_ATTR5_START_PERIODIC_AT_APPLY;
-    });
-
-    // Castigation
-    ApplySpellFix({193134}, [](SpellInfo* spellInfo)
-    {
-        spellInfo->Effects[EFFECT_0]->BasePoints = -66;
     });
 
     // War Banner (Honor Talent)
@@ -7923,14 +7931,306 @@ void SpellMgr::LoadSpellCustomAttr()
         spellInfo->Effects[EFFECT_0]->BasePoints = 4000;
         spellInfo->GetMisc()->MiscData.Attributes[8] |= SPELL_ATTR8_NOT_IN_BG_OR_ARENA;
         spellInfo->GetMisc()->MiscData.Attributes[4] |= SPELL_ATTR4_NOT_USABLE_IN_ARENA_OR_RATED_BG;
-    });
-
-    // update for custom pvp mods (7.3.5)
-    ApplySpellFix({ 33763, 202497 }, [](SpellInfo* spellInfo)
-    {
-        spellInfo->Effects[EFFECT_0]->PvPMultiplier = 1.5f;
-    });
-
+    });	
+	
+	// 137639 Storm, Earth, and Fire
+	ApplySpellFix({ 137639 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.9f;
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 0.9f;
+		spellInfo->Effects[EFFECT_2]->PvPMultiplier = 0.9f;
+		spellInfo->Effects[EFFECT_3]->PvPMultiplier = 0.9f;
+	});
+	// 195380 Healing Winds
+	ApplySpellFix({ 195380 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.5f;
+	});
+	// 195300 Transfer the Power
+	ApplySpellFix({ 195300 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.6f;
+	});
+	// 195321 Transfer the Power
+	ApplySpellFix({ 195321 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.6f;
+	});
+	// 113656 Fist of Fury
+	ApplySpellFix({ 113656 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_4]->PvPMultiplier = 0.8f;
+	});
+	// 100784 Blackout Kick
+	ApplySpellFix({ 100784 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 1.1f;
+	});
+	// 20473 Holy Shock (dmg)
+	ApplySpellFix({ 20473 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.5f;
+	});
+	// 215661 Justicar's Vengeance
+	ApplySpellFix({ 215661 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 0.5f;
+	});
+	// 213757 Execution Sentence
+	ApplySpellFix({ 213757 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.8f;
+	});
+	// 184575 Blade of Justice
+	ApplySpellFix({ 184575 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 0.91f;
+	});
+	// 209376 Forbearant Faithful
+	ApplySpellFix({ 209376 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 0.4f;
+	});
+	// 238698 Vampiric Aura
+	ApplySpellFix({ 238698 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.4f;
+	});
+	// 189179 Frozen Core
+	ApplySpellFix({ 189179 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.5f;
+	});
+	// 190778 Sindragosa's Fury
+	ApplySpellFix({ 190778 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.4f;
+	});
+	// 116858 Chaos Bolt
+	ApplySpellFix({ 116858 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 1.15f;
+	});
+	// 224103 Lord of Flames
+	ApplySpellFix({ 224103 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_2]->PvPMultiplier = 0.33f;
+	});
+	// 171982 Demonic Synergy
+	ApplySpellFix({ 171982 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.75f;
+	});
+	// 228598 Ice Lance
+	ApplySpellFix({ 228598 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 1.2f;
+	});
+	// 192657 Trick Bag
+	ApplySpellFix({ 192657 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.6f;
+	});
+	// 205148 Reverse entropy
+	ApplySpellFix({ 205148 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 0.5f;
+	});
+	// 155158 Meteor (dot)
+	ApplySpellFix({ 155158 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.7f;
+	});
+	// 11366 Pyroexplotion
+	ApplySpellFix({ 11366 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.7f;
+	});
+	// 2120 Flamestrike
+	ApplySpellFix({ 2120 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.9f;
+	});
+	// 194318 Cauterizing Blink
+	ApplySpellFix({ 194318 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.5f;
+	});
+	// 155147 Overpower
+	ApplySpellFix({ 155147 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.55f;
+	});
+	// 12042 Arcane Power
+	ApplySpellFix({ 12042 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.83f;
+	});
+	// 195452 Nightblade
+	// 196819 Eviscerate
+	ApplySpellFix({ 195452, 196819 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.85f;
+	});
+	// 245623 Shadowstrike (stealth effect)
+	ApplySpellFix({ 245623 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 1.f;
+	});
+	// 185438 Shadowstrike
+	ApplySpellFix({ 185438 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 0.7f;
+	});
+	// 197496 Finality: Eviscerate
+	// 197498 Finality: Nightblade
+	ApplySpellFix({ 197496, 197498 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.6f;
+	});
+	// 19434 Aimed Shot (Level 110)
+	ApplySpellFix({ 19434 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 1.05f;
+	});
+	// 5185 Healing Touch
+	ApplySpellFix({ 5185 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 1.0f;
+	});
+	// 163201 Execute
+	ApplySpellFix({ 163201 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 1.0f;
+	});
+	// Electrocute
+	ApplySpellFix({ 206647 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->GetMisc()->MiscData.Attributes[10] &= ~SPELL_ATTR10_STACK_DAMAGE_OR_HEAL;
+	});
+	// Ferocious Bite custom penalization
+	ApplySpellFix({ 22568 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.8f;
+	});
+	// Lifebloom
+	ApplySpellFix({ 33763 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 1.5f;
+	});
+	// update for custom pvp mods (7.3.5)
+	ApplySpellFix({ 202497 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 1.f;
+	});
+	//  Rake
+	ApplySpellFix({ 1822 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_3]->PvPMultiplier = 0.25f;
+	});
+	// 5221 Shred
+	ApplySpellFix({ 5221 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_3]->PvPMultiplier = 0.30f;
+	});
+	// 226104 Echoing Stars
+	ApplySpellFix({ 226104 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.75f;
+	});
+	// Execute Fury
+	ApplySpellFix({ 5308 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 1.f;
+	});
+	// Execute Fury Off-hand
+	ApplySpellFix({ 163558 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 1.f;
+	});
+	//  Enrage Warrior Fury
+	ApplySpellFix({ 184362 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 0.5f;
+	});
+	// Warpaint
+	ApplySpellFix({ 208154 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 1.f;
+	});
+	//  Chain Lightning - Shaman Enchament
+	ApplySpellFix({ 211094 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->ChainAmplitude = 1.f;
+	});
+	//  Riptide
+	ApplySpellFix({ 61295 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 1.15f;
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 1.15f;
+	});
+	//  Earth Shock
+	ApplySpellFix({ 8042 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.63f;
+	});
+	//  Icefury
+	ApplySpellFix({ 210714 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_2]->PvPMultiplier = 0.63f;
+	});
+	//  Icefury Overload
+	ApplySpellFix({ 219271 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.4875f;
+	});
+	//  Shadow Word: Pain
+	ApplySpellFix({ 589 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 0.8f;
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 0.8f;
+	});
+	//  Vampiric Touch
+	ApplySpellFix({ 34914 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 0.85f;
+	});
+	//  Atonement
+	ApplySpellFix({ 81749 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 1.25f;
+	});
+	// Power Word: Shield
+	ApplySpellFix({ 17 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 1.1f;
+	});
+	//  Tyranny of Pain
+	ApplySpellFix({ 242094 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->GetMisc()->MiscData.Attributes[2] |= SPELL_ATTR2_CANT_CRIT;
+	});
+	// Heal - Priest Holy
+	ApplySpellFix({ 2060 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 2.0f;
+	});
+	//  Renew - Priest Holy
+	ApplySpellFix({ 139 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_0]->PvPMultiplier = 1.75f;
+	});
+	//  Marked Shot
+	ApplySpellFix({ 212621 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_1]->PvPMultiplier = 0.70f;
+	});
+	//  PvP Stats - Spec Stat Template - All Specs (Level 110)
+	ApplySpellFix({ 198439 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->Effects[EFFECT_1]->ApplyAuraName = SPELL_AURA_MOD_HEALING_DONE_PERCENT;
+	});
+	
     ApplySpellFix({ 200851 }, [](SpellInfo* spellInfo)
     {
         spellInfo->Effects[EFFECT_3]->PvPMultiplier = 0.1f;
@@ -7967,7 +8267,7 @@ void SpellMgr::LoadSpellCustomAttr()
         spellInfo->Effects[EFFECT_1]->PvPMultiplier = 0.5f;
     });
 
-    ApplySpellFix({ 32175, 32176, 115357, 115360, 205414, 222029, 201628, 201789, 193455, 212621, 224239, 224266 }, [](SpellInfo* spellInfo)
+    ApplySpellFix({ 32175, 32176, 115357, 115360, 205414, 222029, 201628, 201789, 193455, 224239, 224266 }, [](SpellInfo* spellInfo)
     {
         spellInfo->Effects[EFFECT_1]->PvPMultiplier = spellInfo->Effects[EFFECT_0]->PvPMultiplier;
     });
@@ -8134,6 +8434,17 @@ void SpellMgr::LoadSpellCustomAttr()
         spellInfo->Effects[EFFECT_2]->TargetA = TARGET_UNIT_CONE_ENEMY_24;
     });
 
+	// Pandemic effect
+	ApplySpellFix({ 774, 
+					155777,
+					139,
+					8936,
+					33763,
+					61295 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->GetMisc()->MiscData.Attributes[13] |= SPELL_ATTR13_PANDEMIA;
+	});
+
 	// Fixed aura stack bugs like rejuvenation stacking instead of refreshing the buff etc
 	// TODO there might be more spells that stack so add more spells onto here if any are found
 	ApplySpellFix({ 1079,  // Rip
@@ -8146,7 +8457,10 @@ void SpellMgr::LoadSpellCustomAttr()
 					66,    // Invisibility spell
 					136,   // Mend pet
 					1604,  // Dazed
-					1850   // Dash
+					1850,  // Dash
+					772,   // Ren
+					1966,  // Amago
+					1715,  // Seccionar
 		}, [](SpellInfo* spellInfo)
 	{
 		spellInfo->GetAuraOptions()->ProcCharges = 0;
@@ -8167,6 +8481,24 @@ void SpellMgr::LoadSpellCustomAttr()
 		{
 			spellInfo->GetMisc()->MiscData.Attributes[5] &= ~SPELL_ATTR5_SINGLE_TARGET_SPELL;
 		});
+
+	// Lord of Flames
+	ApplySpellFix({ 224103 }, [](SpellInfo* spellInfo)
+	{		
+		spellInfo->GetAuraOptions()->ProcCategoryRecovery = 500;
+		spellInfo->GetAuraOptions()->ProcBasePPM = 500;
+		spellInfo->GetAuraOptions()->ProcTypeMask = PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_POS | PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_NEG | PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_POS | PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG;
+		spellInfo->AuraOptions.ProcCategoryRecovery = 500;
+		spellInfo->AuraOptions.ProcBasePPM = 500;
+		spellInfo->AuraOptions.ProcTypeMask = PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_POS | PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_NEG | PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_POS | PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG;
+		spellInfo->AttributesCu[0] |= SPELL_ATTR0_CU_PROC_ONLY_ON_CAST;
+	});
+
+	// 77616 Dark Simulacrum
+	ApplySpellFix({ 77616 }, [](SpellInfo* spellInfo)
+	{
+		spellInfo->GetAuraOptions()->ProcCharges = 0;
+	});
 
 	// Fixed duration for frozen orb mage
 	/*ApplySpellFix({ 84721 }, [](SpellInfo* spellInfo)

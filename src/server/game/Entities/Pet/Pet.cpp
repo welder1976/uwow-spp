@@ -34,6 +34,13 @@
 #include "Unit.h"
 #include "Util.h"
 #include "WorldPacket.h"
+#include "DB2Stores.h"
+#include "Map.h"
+#include "Player.h"
+#include "Spell.h"
+#include "World.h"
+
+#define PET_XP_FACTOR 0.05f
 
 Pet::Pet(Player* owner, PetType type) : Guardian(nullptr, owner, true),
 m_removed(false), m_duration(0), m_specialization(0), m_groupUpdateMask(0), m_declinedname(nullptr)

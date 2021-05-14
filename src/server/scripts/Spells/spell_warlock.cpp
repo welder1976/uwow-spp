@@ -1051,6 +1051,7 @@ class spell_warl_soul_harvest : public SpellScriptLoader
 };
 
 // Demon Skin - 219272
+// Modified by ScorpioN7
 class spell_warl_demon_skin : public SpellScriptLoader
 {
     public:
@@ -1092,6 +1093,20 @@ class spell_warl_demon_skin : public SpellScriptLoader
                                     allAbsorb = maxAbsorb;
 
                                 auraEff->SetAmount(allAbsorb);
+
+								//Soul Link Mechanic
+								if (caster->HasAura(108446)) 
+								{
+									if (allAbsorb < maxAbsorb) 
+									{
+										int32 soulLinkHeal = addAbsorb;
+										int32 ownerPerc = sSpellMgr->GetSpellInfo(108446)->Effects[EFFECT_1]->BasePoints;
+										int32 petPerc = sSpellMgr->GetSpellInfo(108446)->Effects[EFFECT_2]->BasePoints;
+										float bp0 = CalculatePct(soulLinkHeal, ownerPerc);
+										float bp1 = CalculatePct(soulLinkHeal, petPerc);
+										caster->CastCustomSpell(caster, 108447, &bp0, &bp1, NULL, true);
+									}
+								}
                             }
                             else
                             {
@@ -2379,6 +2394,37 @@ class spell_warl_incinerate : public SpellScript
     }
 };
 
+// ID - 698 Ritual of Summoning
+class spell_warl_ritual_of_summoning : public SpellScriptLoader
+{
+public:
+	spell_warl_ritual_of_summoning() : SpellScriptLoader("spell_warl_ritual_of_summoning") { }
+
+	class spell_warl_ritual_of_summoning_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_warl_ritual_of_summoning_SpellScript);
+
+		SpellCastResult CheckCast()
+		{
+			if (Unit* caster = GetCaster())
+				if (caster->ToPlayer())
+					if (caster->ToPlayer()->InBattleground())
+						return SPELL_FAILED_YOU_CANNOT_USE_THAT_IN_PVP_INSTANCE;
+
+			return SPELL_CAST_OK;
+		}
+
+		void Register() override
+		{
+			OnCheckCast += SpellCheckCastFn(spell_warl_ritual_of_summoning_SpellScript::CheckCast);
+		}
+	};
+	SpellScript* GetSpellScript() const override
+	{
+		return new spell_warl_ritual_of_summoning_SpellScript();
+	}
+};
+
 void AddSC_warlock_spell_scripts()
 {
     new spell_warl_burning_rush();
@@ -2435,4 +2481,5 @@ void AddSC_warlock_spell_scripts()
     RegisterSpellScript(spell_warl_create_healthstone);
     RegisterSpellScript(spell_warl_incinerate);
     RegisterAuraScript(spell_warl_searing_bolts);
+	new spell_warl_ritual_of_summoning();
 }

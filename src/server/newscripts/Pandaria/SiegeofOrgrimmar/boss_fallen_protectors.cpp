@@ -16,7 +16,27 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "ObjectMgr.h"
+#include "ScriptMgr.h"
+#include "ScriptedCreature.h"
+#include "SpellScript.h"
+#include "SpellAuraEffects.h"
+#include "SpellAuras.h"
+#include "MapManager.h"
+#include "Spell.h"
+#include "Vehicle.h"
+#include "Cell.h"
+#include "CellImpl.h"
+#include "GridNotifiers.h"
+#include "GridNotifiersImpl.h"
 #include "CreatureTextMgr.h"
+#include "Unit.h"
+#include "Player.h"
+#include "Creature.h"
+#include "InstanceScript.h"
+#include "Map.h"
+#include "VehicleDefines.h"
+#include "SpellInfo.h"
 #include "siege_of_orgrimmar.h"
 
 enum eSpells

@@ -230,21 +230,19 @@ const uint32 DisableSpecs[]
 
 static auto Arena1v1CheckTalents = [](Player* player) -> bool // Return false, if player have tank/heal spec
 {
+
     if (!player)
         return false;
 
-/*
     if (player->getLevel() < 110)
         return false;
 
     for (auto curSpec : DisableSpecs)
-    {
         if (player->GetUInt32Value(PLAYER_FIELD_CURRENT_SPEC_ID) == curSpec)
         {
             ChatHandler(player).PSendSysMessage("You can't use tank/heal spec");
             return false;
         }
-    }*/
 
     return true;
 };

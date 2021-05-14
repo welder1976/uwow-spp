@@ -89,6 +89,7 @@ Position const dm_buf_pos[6]
     {1062.31f, 468.56f, 0.91f, 3.38f},
     
     {1036.84f, 160.94f, 83.32f, 5.01f}
+    
 };
 
 struct BattlegroundDMScore final : BattlegroundScore
@@ -131,13 +132,10 @@ public:
     void EndBattleground(uint32 winner) override;
     
     void PostUpdateImpl(uint32 diff) override;
-
-    static int32 CalculateRating(BattlegroundScore* bs) { return CalculateRating(bs->GetScore(SCORE_KILLING_BLOWS), bs->GetScore(SCORE_DEATHS), bs->GetScore(SCORE_DAMAGE_DONE)); }
-    static int32 CalculateRating(uint32 kills, uint32 dies, uint64 dmg);
     
 private:
-    
-    
+    int32 CalculateRating(uint32 kills, uint32 dies, uint64 dmg) const ;
+    int32 CalculateRating(BattlegroundScore* bs) const {return CalculateRating(bs->GetScore(SCORE_KILLING_BLOWS), bs->GetScore(SCORE_DEATHS), bs->GetScore(SCORE_DAMAGE_DONE)); }
     void SendSysMessageToAll(uint32 textid, Player* first = nullptr, Player* second = nullptr);
     void SendDirectMessageToAll(uint32 textid, Player* first);
     

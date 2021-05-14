@@ -30,11 +30,11 @@
 #include "World.h"
 #include "Warden.h"
 #include "Duration.h"
+#include "RealmList.h"
 
 #include <zlib.h>
 #include <memory>
 #include "DatabaseEnv.h"
-#include "RealmList.h"
 
 #pragma pack(push, 1)
 
@@ -718,16 +718,15 @@ void WorldSocket::HandleAuthSessionCallback(std::shared_ptr<WorldPackets::Auth::
         DelayedCloseSocket();
         return;
     }
-
-	RealmBuildInfo const* buildInfo = sRealmList->GetBuildInfo(realm.Build);
-	if (!buildInfo)
-	{
-		SendAuthResponseError(ERROR_BAD_VERSION);
-		TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "WorldSocket::HandleAuthSession: Missing auth seed for realm build %u (%s).", realm.Build, GetRemoteIpAddress().to_string().c_str());
-		DelayedCloseSocket();
-		return;
-	}
-
+	
+	    RealmBuildInfo const* buildInfo = sRealmList->GetBuildInfo(realm.Build);
+    if (!buildInfo)
+    {
+        SendAuthResponseError(ERROR_BAD_VERSION);
+        TC_LOG_ERROR(LOG_FILTER_NETWORKIO, "WorldSocket::HandleAuthSession: Missing auth seed for realm build %u (%s).", realm.Build, GetRemoteIpAddress().to_string().c_str());
+        DelayedCloseSocket();
+        return;
+    }
 
     AccountInfo account(result->Fetch());
 

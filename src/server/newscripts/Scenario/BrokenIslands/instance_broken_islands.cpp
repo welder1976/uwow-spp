@@ -114,12 +114,12 @@ public:
                         if (player->GetTeam() == ALLIANCE)
                         {
                             //X: 2.39286 Y: 1.694546 Z: 5.205733 O: 3.155922
-                            init.MoveTo(2.39286f, 1.694546f, 5.205733f, false, true);
+                            init.MoveTo(2.39286f, 1.694546f, 7.205733f, false, true);
                             init.SetFacing(3.155922f);
                         }else
                         {
                             //X: -7.351539 Y : -3.37038 Z : 10.99244 O : 0.4190969
-                            init.MoveTo(-7.351539f, -3.37038f, 10.99244f, false, true);
+                            init.MoveTo(-7.351539f, -3.37038f, 12.99244f, false, true);
                             init.SetFacing(0.4190969f);
                         }
 
@@ -732,6 +732,86 @@ public:
                     else
                         massive_cast(224998); // scene 1437
                     break;
+				case 7:
+				{
+
+					break;
+				}
+				case 8:
+				{
+					{ // alliance. No "if"
+						Creature* var = instance->GetCreature(GetGuidData(NPC_VARIAN));
+						if (!var)
+							return;
+						//   var = instance->SummonCreature(NPC_VARIAN, 1552.487f, 1751.488f, 53.70518f, 3.926991f);
+
+					   // var->CastSpell(var, 225109, true); //conv 3585
+						var->GetMotionMaster()->Clear();
+
+						std::list<Creature*> guards;
+						GetCreatureListWithEntryInGrid(guards, var, 90716, 90.0f);
+						GetCreatureListWithEntryInGrid(guards, var, 91949, 90.0f);
+						GetCreatureListWithEntryInGrid(guards, var, 92122, 90.0f);
+						GetCreatureListWithEntryInGrid(guards, var, 90717, 90.0f);
+						GetCreatureListWithEntryInGrid(guards, var, 90714, 90.0f);
+						GetCreatureListWithEntryInGrid(guards, var, 93219, 90.0f);
+						GetCreatureListWithEntryInGrid(guards, var, 97496, 90.0f);
+						GetCreatureListWithEntryInGrid(guards, var, 97486, 90.0f);
+						GetCreatureListWithEntryInGrid(guards, var, 93219, 90.0f);
+						if (!guards.empty())
+							for (std::list<Creature*>::iterator itr = guards.begin(); itr != guards.end(); ++itr)
+							{
+								(*itr)->SetReactState(REACT_AGGRESSIVE);
+								(*itr)->GetMotionMaster()->Clear();
+								(*itr)->GetMotionMaster()->MovePath(439147, false, irand(-3, 3), irand(-3, 3)); // 3
+
+							}
+						var->SummonGameObject(242549, 1536.26f, 1776.97f, 37.263f, 2.03f, 0.0f, 0.0f, 0.0f, 0.0f, DAY);
+
+						var->GetMotionMaster()->MovePath(439141, false); // 3
+						var->SetHomePosition(1612.035f, 1706.058f, 77.55668f, var->GetOrientation());
+					}
+					{ // horde 
+						Creature* sylv = instance->GetCreature(GetGuidData(NPC_SYLVANA));
+						if (!sylv)
+							return;
+						//  sylv = instance->SummonCreature(NPC_SYLVANA, 1427.27f, 1776.18f, 34.23f, 0.0f);
+
+						sylv->GetMotionMaster()->Clear();
+
+						std::list<Creature*> guards;
+						GetCreatureListWithEntryInGrid(guards, sylv, 97525, 90.0f);
+						GetCreatureListWithEntryInGrid(guards, sylv, 93704, 90.0f);
+						GetCreatureListWithEntryInGrid(guards, sylv, 90712, 90.0f);
+						GetCreatureListWithEntryInGrid(guards, sylv, 90711, 90.0f);
+						GetCreatureListWithEntryInGrid(guards, sylv, 90708, 90.0f);
+						GetCreatureListWithEntryInGrid(guards, sylv, 90710, 90.0f);
+						if (!guards.empty())
+							for (std::list<Creature*>::iterator itr = guards.begin(); itr != guards.end(); ++itr) // те, кто остаются снизу и "дефают"
+							{
+								(*itr)->SetReactState(REACT_AGGRESSIVE);
+								(*itr)->GetMotionMaster()->Clear();
+								(*itr)->GetMotionMaster()->MovePath(439153, false, irand(-6, 6), irand(-6, 6));
+
+							}
+
+						sylv->SummonGameObject(254234, 1453.84f, 1694.59f, 34.25f, 2.37f, 0.0f, 0.0f, 0.0f, 0.0f, DAY);
+
+						std::list<Creature*> guardss;
+						GetCreatureListWithEntryInGrid(guardss, sylv, 112920, 90.0f);
+						if (!guardss.empty())
+							for (std::list<Creature*>::iterator itr = guardss.begin(); itr != guardss.end(); ++itr) // те, кто бегут с Сильвой и дефают верх
+							{
+								(*itr)->SetReactState(REACT_AGGRESSIVE);
+								(*itr)->GetMotionMaster()->Clear();
+								(*itr)->GetMotionMaster()->MovePath(439154, false, irand(-3, 3), irand(-3, 3));
+
+							}
+						sylv->GetMotionMaster()->MovePath(439154, false); // 5   те, кто бегут с Сильвой и дефают верх
+						sylv->SetHomePosition(1612.035f, 1706.058f, 77.55668f, sylv->GetOrientation());
+					}
+				}
+				break;
             }
         }
     };

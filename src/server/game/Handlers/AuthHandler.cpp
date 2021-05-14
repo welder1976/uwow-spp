@@ -39,7 +39,7 @@ void WorldSession::SendAuthWaitQue(uint32 position)
         SendPacket(WorldPackets::Auth::WaitQueueFinish().Write());
 }
 
-void WorldSession::SendAuthResponse(uint8 code, bool queued /*= false*/, uint32 queuePos /*= 0*/)
+void WorldSession::SendAuthResponse(uint8 code, bool CharacterTemplate, bool queued /*= false*/, uint32 queuePos /*= 0*/)
 {
     WorldPackets::Auth::AuthResponse response;
     response.Result = code;
@@ -56,22 +56,23 @@ void WorldSession::SendAuthResponse(uint8 code, bool queued /*= false*/, uint32 
         response.SuccessInfo->AvailableClasses = &sObjectMgr->GetClassExpansionRequirements();
         response.SuccessInfo->Time = int32(time(nullptr));
 
-        if (sWorld->getBoolConfig(CONFIG_CHARACTER_TEMPLATE))
+		
+        if (CharacterTemplate && sWorld->getBoolConfig(CONFIG_CHARACTER_TEMPLATE))
         {
             if (realm.Build < 26972)
             {
-                for (auto const& templ : sCharacterDataStore->GetCharacterTemplates())
-                {
-                    WorldPackets::Auth::AuthResponse::CharacterTemplateData templateData;
-                    templateData.TemplateSetID = templ.second.TemplateSetID;
-                    for (auto x : templ.second.Classes)
-                        templateData.Classes.emplace_back(x.FactionGroup, x.ClassID);
-                    for (auto z : templ.second.Items)
-                        templateData.Items.emplace_back(z.ItemID, z.Count, z.ClassID, z.FactionGroup);
-                    templateData.Name = templ.second.Name;
-                    templateData.Description = templ.second.Description;
-                    response.SuccessInfo->Templates.emplace_back(templateData);
-                }
+				for (auto const& templ : sCharacterDataStore->GetCharacterTemplates())
+				{
+                WorldPackets::Auth::AuthResponse::CharacterTemplateData templateData;
+                templateData.TemplateSetID = templ.second.TemplateSetID;
+                for (auto x : templ.second.Classes)
+                    templateData.Classes.emplace_back(x.FactionGroup, x.ClassID);
+                for (auto z : templ.second.Items)
+                    templateData.Items.emplace_back(z.ItemID, z.Count, z.ClassID, z.FactionGroup);
+                templateData.Name = templ.second.Name;
+                templateData.Description = templ.second.Description;
+                response.SuccessInfo->Templates.emplace_back(templateData);
+				}
             }
         }
         else

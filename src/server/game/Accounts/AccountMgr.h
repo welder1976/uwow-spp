@@ -33,8 +33,8 @@ enum class AccountOpResult : uint8
     AOR_DB_INTERNAL_ERROR,
 };
 
-#define MAX_PASS_STR 16
-#define MAX_ACCOUNT_STR 16
+#define MAX_PASS_STR 32
+#define MAX_ACCOUNT_STR 32
 #define MAX_EMAIL_STR 64
 
 namespace AccountMgr

@@ -197,8 +197,12 @@ GroupQueueInfo* BattlegroundQueue::AddGroup(Player* leader, Group* grp, uint16 B
         else
             ginfo->Team = ALLIANCE;
     }
-    else
-        ginfo->Team = leader->GetBGTeam();
+	else
+	{
+		//Mercenary
+		ginfo->Team = leader->GetBGQueueTeam();
+	}
+	
 
     ginfo->MatchmakerRating = mmr;
     ginfo->OpponentsMatchmakerRating = 0;
@@ -231,6 +235,14 @@ GroupQueueInfo* BattlegroundQueue::AddGroup(Player* leader, Group* grp, uint16 B
             info.LastOnlineTime = lastOnlineTime;
             info.GroupInfo = ginfo;
             ginfo->Players[member->GetGUID()] = &info;
+
+			if (ginfo->Team != member->GetTeam())
+			{
+				if (member->GetTeam() == ALLIANCE)
+					member->CastSpell(member, 193472);
+				else
+					member->CastSpell(member, 193475);
+			}
         }
     }
     else
@@ -341,6 +353,7 @@ void BattlegroundQueue::RemovePlayerQueue(ObjectGuid guid, bool decreaseInvitedC
     {
         for (uint32 j = index; j < MS::Battlegrounds::QueueGroupTypes::Max; j += MAX_TEAMS)
         {
+			if(_queuedGroups[bracket_id_tmp])// crash , en ocasiones  se intenta evaluar un array por encima de su capacidad
             for (auto group_itr_tmp = _queuedGroups[bracket_id_tmp][j].begin(); group_itr_tmp != _queuedGroups[bracket_id_tmp][j].end(); ++group_itr_tmp)
             {
                 if (*group_itr_tmp && *group_itr_tmp == group)

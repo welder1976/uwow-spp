@@ -27,6 +27,31 @@
 #include "Group.h"
 #include "ChannelMgr.h"
 #include "CreatureAI.h"
+#include <boost/algorithm/string/find.hpp>
+#include <boost/algorithm/string/find_iterator.hpp>
+
+typedef boost::find_iterator<std::string::iterator> string_find_iterator;
+
+// Return substring count inside some string
+inline uint32 CountSubstring(std::string text, std::string term)
+{
+	uint32 strInsideCount = 0;
+
+	for (string_find_iterator It = boost::make_find_iterator(text, boost::first_finder(term, boost::algorithm::is_iequal()));
+		It != string_find_iterator();
+		++It)
+	{
+		strInsideCount += 1;
+	}
+
+	return strInsideCount;
+}
+
+// Check if substring is contained inside some string
+inline bool ContainString(std::string text, std::string search)
+{
+	return boost::find_first(text, search);
+}
 
 bool WorldSession::processChatmessageFurtherAfterSecurityChecks(std::string& msg, uint32 lang)
 {
@@ -325,6 +350,17 @@ void WorldSession::HandleChatMessage(ChatMsg type, uint32 lang, std::string msg,
         if (!badWord.empty())
             isSpamm = true;
     }
+
+	// Check if this msg have a quest link and is valid
+	// If link don't have this form |Hquest:quest_id:real_level:min_level:max_scaling_level| the link is broken and crash the player client
+	// Example of valid quest link: |cff808080|Hquest:28757:3:1:255|h[¡Rechazar el ataque!]|h|r
+	// Example of broken quest link: |cffffff00|Hquest:28757:3|h[¡Rechazar el ataque!]|h|r
+	
+	if (ContainString(msg, "|Hquest:"))
+	{
+		if (CountSubstring(msg, ":") != 4)
+			return;
+	}
 
     switch (type)
     {

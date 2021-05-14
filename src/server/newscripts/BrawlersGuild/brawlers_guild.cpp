@@ -12,13 +12,13 @@ public:
     {
         if (player)
         {
-            auto ok = true;
+            // auto ok = true;
 
-            if (player->GetTeamId() == TEAM_ALLIANCE && !player->HasAchieved(ACHIEVEMENT_FIRST_RULE_A))
-                ok = false;
+            // if (player->GetTeamId() == TEAM_ALLIANCE && !player->HasAchieved(ACHIEVEMENT_FIRST_RULE_A))
+                // ok = false;
 
-            if (player->GetTeamId() == TEAM_HORDE && !player->HasAchieved(ACHIEVEMENT_FIRST_RULE_H))
-                ok = false;
+            // if (player->GetTeamId() == TEAM_HORDE && !player->HasAchieved(ACHIEVEMENT_FIRST_RULE_H))
+                // ok = false;
 
             if (player->HasAchieved(ACHIEVEMENT_FIRST_RULE_H) || player->HasAchieved(ACHIEVEMENT_FIRST_RULE_A))
             {
@@ -353,7 +353,7 @@ public:
     }
 };
 
-void AddSC_brawlers_guild()
+void AddSC_the_brawlers_guild()
 {
     new npc_brawlers_guild_queue();
     new npc_bizmo();

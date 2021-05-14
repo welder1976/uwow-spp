@@ -822,6 +822,7 @@ float AuraEffect::CalculateAmount(Unit* caster)
                     break;
                 }
                 case 194384: // Atonement
+				case 214206: // Atonement honor talent
                 {
                     amount /= 100;
                     break;
@@ -1267,6 +1268,18 @@ float AuraEffect::CalculateAmount(Unit* caster)
                 amount *= -2000.f;
             break;
         }
+		case 194022: // Mental Fortitude
+		{
+			amount += GetOldBaseAmount();
+			float pctHP = 0;
+			if (AuraEffect const* aurEff0 = target->GetAuraEffect(194018, EFFECT_0)) // Mental Fortitude
+				pctHP = target->CountPctFromMaxHealth(aurEff0->GetAmount());
+			if (amount > pctHP)
+			{
+				amount = pctHP;
+			}
+			break;
+		}
     }
 
     //Disable same auras on arena or BG(RBG)
@@ -1304,8 +1317,22 @@ float AuraEffect::CalculateAmount(Unit* caster)
             if (caster)
             {
                 if (auto scalar = m_spellInfo->GetEffect(m_effIndex, m_diffMode)->PvPMultiplier)
-                    if (caster && caster->CanPvPScalar())
-                        m_amount_mod *= scalar;
+					if (caster && caster->CanPvPScalar())
+					{
+						m_amount_mod *= scalar;
+						// Some spell are penalizated for specific specialization
+						switch (m_spellInfo->Id)
+						{
+						case 17: // Power Word: Shield only have Pvp Benefic for Dicipline specialization 110%
+						{
+							if (caster->IsPlayer() && caster->ToPlayer()->GetUInt32Value(PLAYER_FIELD_CURRENT_SPEC_ID) != SPEC_PRIEST_DISCIPLINE)
+							{
+								m_amount_mod /= scalar;
+							}
+							break;
+						}
+						}
+					}
 
                 amount = amount * m_amount_mod * caster->GetProcStatsMultiplier(m_spellInfo->Id);
                 amount += m_amount_add;
@@ -1328,6 +1355,20 @@ float AuraEffect::CalculateAmount(Unit* caster)
                 }
 
                 amount = RoundingFloatValue(amount);
+
+				//  Clarity of Will
+				if (m_spellInfo->Id == 152118)
+				{
+					if (target)
+					{
+						if (AuraEffect const* aurEff = target->GetAuraEffect(target->HasAura(214205) ? 214206 : 194384, EFFECT_1))
+							amount += CalculatePct(amount, aurEff->GetAmount());
+					}
+					int32 Maxamount = amount * 2;
+					amount += m_oldbaseAmount;
+					if (amount > Maxamount)
+						amount = Maxamount;
+				}
             }
             break;
         }
@@ -1345,6 +1386,12 @@ float AuraEffect::CalculateAmount(Unit* caster)
                     amount = target->GetRemainingPeriodicAmount(caster->GetGUID(), m_spellInfo->Id, GetAuraType(), m_effIndex, amount);
             break;
         }
+		case SPELL_AURA_PERIODIC_LEECH:
+		{
+			amount *= m_amount_mod;
+			amount += m_amount_add;
+			break;
+		}
         default:
         {
             if (auto scalar = m_spellInfo->GetEffect(m_effIndex, m_diffMode)->PvPMultiplier)
@@ -1689,7 +1736,7 @@ void AuraEffect::CalculatePeriodic(Unit* caster, bool resetPeriodicTimer /*= tru
     {
         // Apply periodic time mod
         if (modOwner)
-            modOwner->ApplySpellMod(GetId(), SPELLMOD_ACTIVATION_TIME, m_activation_time);
+            modOwner->ApplySpellMod(GetId(), SPELLMOD_ACTIVATION_TIME, m_period); // Antes usaban m_activation_time como tercer parametro
 
         if (caster)
         {
@@ -7084,7 +7131,7 @@ bool AuraEffect::AuraCostPower(Unit* caster) const
     return true;
 }
 
-void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster, SpellEffIndex /*effIndex*/) const
+void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster, SpellEffIndex effIndex) const
 {
     if (GetId() == 102522)
     {
@@ -7192,23 +7239,19 @@ void AuraEffect::HandlePeriodicDummyAuraTick(Unit* target, Unit* caster, SpellEf
                 case 186370: // Mark of Shifting
                 {
                     float heal = CalculatePct(caster->GetMaxHealth(), m_amount); // hack
+					heal = caster->SpellHealingBonusDone(target, GetSpellInfo(), heal, HEAL, effIndex);
                     if (Aura* aura = caster->GetAura(77495)) // Mastery: Harmony
                     {
                         float modDif = 0.f;
-                        uint32 modCount = 0;
-                        uint32 modMaxCount = 9;
+						int32 modCount = 0;
                         if (AuraEffect* eff = aura->GetEffect(EFFECT_0))
                             modDif = eff->GetAmount();
                         if (Unit::AuraEffectList const* mPeriodic = target->GetAuraEffectsByType(SPELL_AURA_PERIODIC_HEAL))
                             for (Unit::AuraEffectList::const_iterator i = mPeriodic->begin(); i != mPeriodic->end(); ++i)
                                 if ((*i)->GetCasterGUID() == caster->GetGUID())
-                                    modCount++;
-
-                        if (modCount >= modMaxCount)
-                            modCount = modMaxCount;
-
+									modCount++;
                         if (modCount && modDif)
-                            AddPct(heal, modDif * modCount);
+							heal += CalculatePct(heal, modDif * modCount);
                     }
                     caster->CastCustomSpell(caster, 224392, &heal, nullptr, nullptr, true);
                     break;
@@ -8345,6 +8388,15 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster, SpellEf
                 }
                 break;
             }
+			case 202147: // Second Wind
+			{
+				if (!target->HasAura(29838))
+				{
+					damage = 0;
+					target->RemoveAurasDueToSpell(GetSpellInfo()->Id);
+				}
+				break;
+			}
             default:
                 break;
         }
@@ -8377,19 +8429,15 @@ void AuraEffect::HandlePeriodicHealAurasTick(Unit* target, Unit* caster, SpellEf
             if (Aura* aura = caster->GetAura(77495)) // Mastery: Harmony
             {
                 float modDif = 0.f;
-                uint32 modCount = 0;
-                uint32 modMaxCount = 9;
+				int32 modCount = 0;
                 if (AuraEffect* eff = aura->GetEffect(EFFECT_0))
                     modDif = eff->GetAmount();
                 if (Unit::AuraEffectList const* mPeriodic = target->GetAuraEffectsByType(SPELL_AURA_PERIODIC_HEAL))
                     for (Unit::AuraEffectList::const_iterator i = mPeriodic->begin(); i != mPeriodic->end(); ++i)
                         if ((*i)->GetCasterGUID() == caster->GetGUID())
-                            modCount++;
-
-                if (modCount >= modMaxCount)
-                    modCount = modMaxCount;
+							modCount++;
                 if (modCount && modDif)
-                    damage += CalculatePct(damage, modDif * modCount);
+					damage += CalculatePct(damage, modDif * modCount);
             }
         }
 

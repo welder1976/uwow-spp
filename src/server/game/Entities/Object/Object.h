@@ -170,7 +170,7 @@ class Object
 {
     public:
         virtual ~Object();
-
+		Trinity::AnyData Variables;
         bool IsInWorld() const;
         bool IsDelete() const;
         bool IsPreDelete() const;
@@ -192,6 +192,7 @@ class Object
 
         TypeID GetTypeId() const { return m_objectTypeId; }
         bool isType(uint16 mask) const { return (mask & m_objectType) != 0; }
+		uint16 GetOjectType() { return m_objectType; }
 
         virtual void BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) const;
         void SendUpdateToPlayer(Player* player);

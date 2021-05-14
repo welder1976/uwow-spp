@@ -1257,7 +1257,6 @@ class spell_dk_scourge_strike : public SpellScript
             {
                 int32 count = 1;
                 if (caster->HasAura(207305)) // Castigator
-                    if (GetSpell()->IsCritForTarget(target))
                         count++;
 
                 if (AuraEffect* aurEff = caster->GetAuraEffect(208713, EFFECT_0)) // Lesson of Razuvious
@@ -1569,7 +1568,7 @@ class spell_dk_apocalypse : public SpellScriptLoader
                     if (Aura* aura = target->GetAura(194310, caster->GetGUID()))
                     {
                         int32 count = aura->GetStackAmount();
-                        int8 cap = caster->CanPvPScalar() ? 4 : GetSpellInfo()->Effects[EFFECT_2]->BasePoints;
+                        int8 cap = GetSpellInfo()->Effects[EFFECT_2]->BasePoints;
                         if (count > cap)
                             count = cap;
 
@@ -2254,6 +2253,116 @@ class spell_dk_claw_owner : public SpellScript
     }
 };
 
+// 199721 Decomposing Aura aura
+class spell_dk_descomposing_aura_aura : public SpellScriptLoader
+{
+public:
+	spell_dk_descomposing_aura_aura() : SpellScriptLoader("spell_dk_descomposing_aura_aura") { }
+
+	class spell_dk_descomposing_aura_aura_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_dk_descomposing_aura_aura_SpellScript);
+
+		void FilterTargets(std::list<WorldObject*>& targets)
+		{
+			if (targets.empty())
+				return;
+
+			if (Unit* caster = GetCaster())
+			{
+				for (std::list<WorldObject*>::const_iterator itr = targets.begin(); itr != targets.end(); ++itr)
+				{
+					if ((*itr) != nullptr)
+						if ((*itr)->ToUnit())
+							if (Aura* aura = (*itr)->ToUnit()->GetAura(199721))
+								if (aura->GetCasterGUID() != caster->GetGUID())
+									targets.remove((*itr));
+				}
+			}
+		}
+
+		void Register() override
+		{
+			OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_dk_descomposing_aura_aura_SpellScript::FilterTargets, EFFECT_0, TARGET_UNIT_SRC_AREA_ENEMY);
+			OnObjectAreaTargetSelect += SpellObjectAreaTargetSelectFn(spell_dk_descomposing_aura_aura_SpellScript::FilterTargets, EFFECT_1, TARGET_UNIT_SRC_AREA_ENEMY);
+		}
+	};
+	SpellScript* GetSpellScript() const override
+	{
+		return new spell_dk_descomposing_aura_aura_SpellScript();
+	}
+};
+
+//ID - 77616 Dark Simulacrum
+class spell_dk_dark_simulacrum_castbar : public SpellScriptLoader
+{
+public:
+	spell_dk_dark_simulacrum_castbar() : SpellScriptLoader("spell_dk_dark_simulacrum_castbar") { }
+
+	class spell_dk_dark_simulacrum_castbar_AuraScript : public AuraScript
+	{
+		PrepareAuraScript(spell_dk_dark_simulacrum_castbar_AuraScript);
+
+		void ProcEff(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+		{
+			PreventDefaultAction();
+
+			if (Unit* caster = GetCaster())
+				if (Unit* target = eventInfo.GetProcTarget())
+					if (Spell* spellproc = eventInfo.GetSpell())
+						if (eventInfo.GetSpell()->GetSpellInfo()->Id == aurEff->GetAmount())
+						{							
+							Remove();
+						}
+		}
+		
+		void Register() override
+		{
+			OnEffectProc += AuraEffectProcFn(spell_dk_dark_simulacrum_castbar_AuraScript::ProcEff, EFFECT_0, SPELL_AURA_OVERRIDE_ACTIONBAR_SPELLS_2);
+		}
+	};
+	AuraScript* GetAuraScript() const override
+	{
+		return new spell_dk_dark_simulacrum_castbar_AuraScript();
+	}
+};
+
+// ID - 91778 Sweeping Claws
+class spell_dk_pet_sweeping_claws : public SpellScriptLoader
+{
+public:
+	spell_dk_pet_sweeping_claws() : SpellScriptLoader("spell_dk_pet_sweeping_claws") { }
+
+	class spell_dk_pet_sweeping_claws_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_dk_pet_sweeping_claws_SpellScript);
+
+		void HandleOnHit(SpellEffIndex /*effIndex*/)
+		{
+			if (GetCaster())
+				if (GetHitUnit())
+				{
+					int32 damage = 0;
+					damage = GetHitDamage();
+					if (GetCaster()->HasAura(63560))
+					{
+						damage *= 2;
+						SetHitDamage(damage);
+					}						
+				}
+		}
+
+		void Register() override
+		{
+			OnEffectHitTarget += SpellEffectFn(spell_dk_pet_sweeping_claws_SpellScript::HandleOnHit, EFFECT_1, SPELL_EFFECT_WEAPON_PERCENT_DAMAGE);
+		}
+	};
+	SpellScript* GetSpellScript() const override
+	{
+		return new spell_dk_pet_sweeping_claws_SpellScript();
+	}
+};
+
 void AddSC_deathknight_spell_scripts()
 {
     new spell_dk_desecrated_ground();
@@ -2312,4 +2421,8 @@ void AddSC_deathknight_spell_scripts()
     RegisterAuraScript(spell_dk_consumption_proc);
     RegisterSpellScript(spell_dk_pandemic_pvp);
     RegisterSpellScript(spell_dk_claw_owner);
+
+	new spell_dk_descomposing_aura_aura();
+	new spell_dk_dark_simulacrum_castbar();
+	new spell_dk_pet_sweeping_claws();
 }

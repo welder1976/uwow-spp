@@ -1603,6 +1603,7 @@ void AchievementMgr<T>::UpdateAchievementCriteria(AchievementCachePtr cachePtr, 
     if (cachePtr->player->isGameMaster() || !cachePtr->player->CanContact())
         return;
 
+
     // Lua_GetGuildLevelEnabled() is checked in achievement UI to display guild tab
     if (GetCriteriaSort() == GUILD_CRITERIA && !sWorld->getBoolConfig(CONFIG_GUILD_LEVELING_ENABLED))
         return;
@@ -2018,6 +2019,7 @@ void AchievementMgr<T>::UpdateAchievementCriteria(AchievementCachePtr cachePtr, 
             }
         }
     }
+	
 }
 
 template<class T>
@@ -2548,28 +2550,35 @@ void AchievementMgr<T>::UpdateTimedAchievements(uint32 timeDiff)
 {
     if (!_timeCriteriaTrees.empty())
     {
-        std::lock_guard<std::recursive_mutex> guard(i_timeCriteriaTreesLock);
-        for (auto itr = _timeCriteriaTrees.begin(); itr != _timeCriteriaTrees.end();)
-        {
-            // Time is up, remove timer and reset progress
-            if (itr->second <= timeDiff)
-            {
-                CriteriaTree const* criteriaTree = sAchievementMgr->GetCriteriaTree(itr->first);
-                if (!criteriaTree)
-                    return;
+        //std::lock_guard<std::recursive_mutex> guard(i_timeCriteriaTreesLock);
+		try
+		{
+			for (auto itr = _timeCriteriaTrees.begin(); itr != _timeCriteriaTrees.end();) // Crash en algunas ocaciones _timeCriteriaTrees llega  ser infinito y crashea al tratar de recorrerlo
+			{
+				// Time is up, remove timer and reset progress
+				if (itr->second <= timeDiff)
+				{
+					CriteriaTree const* criteriaTree = sAchievementMgr->GetCriteriaTree(itr->first);
+					if (!criteriaTree)
+						return;
 
-                if (criteriaTree->Criteria)
-                    RemoveCriteriaProgress(criteriaTree);
+					if (criteriaTree->Criteria)
+						RemoveCriteriaProgress(criteriaTree);
 
-                _timeCriteriaTreesArr[itr->first] = nullptr;
-                itr = _timeCriteriaTrees.erase(itr);
-            }
-            else
-            {
-                itr->second -= timeDiff;
-                ++itr;
-            }
-        }
+					_timeCriteriaTreesArr[itr->first] = nullptr;
+					itr = _timeCriteriaTrees.erase(itr);
+				}
+				else
+				{
+					itr->second -= timeDiff;
+					++itr;
+				}
+			}
+		}
+		catch (const std::exception&)
+		{
+			return;
+		}
     }
 }
 

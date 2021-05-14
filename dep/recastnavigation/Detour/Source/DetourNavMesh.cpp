@@ -678,6 +678,7 @@ void dtNavMesh::closestPointOnPoly(dtPolyRef ref, const float* pos, float* close
 	}
 	
 	// Find height at the location.
+	if(pd && pd->triCount) // crash pueden llegar a ser vacios
 	for (int j = 0; j < pd->triCount; ++j)
 	{
 		const unsigned char* t = &tile->detailTris[(pd->triBase+j)*4];

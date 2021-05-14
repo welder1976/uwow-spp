@@ -1335,7 +1335,7 @@ struct CompletedProject
 
 #pragma pack(pop)
 
-typedef std::set<uint32> ResearchSiteSet;
+typedef std::list<uint16> ResearchSiteList;
 typedef std::list<CompletedProject> CompletedProjectList;
 typedef std::set<uint32> ResearchProjectSet;
 
@@ -1388,7 +1388,7 @@ struct WorldQuestInfo
 
 struct DeathMatchScore
 {
-	DeathMatchScore() : kills(0), deaths(0), damage(0), rating(0), matches(0), needSave(false), totalKills(0), selectedMorph(0){};
+    DeathMatchScore() : kills(0), deaths(0), damage(0), rating(0), matches(0), needSave(false), total_kills(0), selected_morph(0){};
     uint32 kills;
     uint32 deaths;
     uint64 damage;
@@ -1396,13 +1396,13 @@ struct DeathMatchScore
     uint32 matches;
     bool needSave;
     
-    uint32 totalKills;
-    std::set<uint32> buyedMorphs;
-    uint32 selectedMorph;
+    uint32 total_kills;
+    std::set<uint32> buyed_morphs;
+    uint32 selected_morph;
     
     bool HasMorph(uint32 morph)
     {
-        if (buyedMorphs.find(morph) != buyedMorphs.end())
+        if (buyed_morphs.find(morph) != buyed_morphs.end())
             return true;
         
         return false;
@@ -1410,15 +1410,15 @@ struct DeathMatchScore
     
     bool BuyMorph(uint32 morph, uint32 cost)
     {
-        if (totalKills < cost)
+        if (total_kills < cost)
             return false;
         
         if (HasMorph(morph))
             return false;
         
-        totalKills -= cost;
+        total_kills -= cost;
         
-        buyedMorphs.insert(morph);
+        buyed_morphs.insert(morph);
         
         return true;
     }
@@ -1786,7 +1786,11 @@ class Player : public Unit, public GridObject<Player>
         void _LoadArchaeologyFinds(PreparedQueryResult result);
         bool HasResearchSite(uint32 id) const
         {
-            return _researchSites.find(id) != _researchSites.end();
+			std::vector<uint32> const research = GetDynamicValues(PLAYER_DYNAMIC_FIELD_RESEARCH_SITES);
+			if (std::find(research.begin(), research.end(), id) != research.end())
+				return true;
+			else
+				return false;
         }
 
         bool HasResearchProjectOfBranch(uint32 id) const;
@@ -1797,7 +1801,7 @@ class Player : public Unit, public GridObject<Player>
 
         void ShowResearchSites();
         void GenerateResearchSites();
-        void GenerateResearchSiteInMap(uint32 mapId);
+		uint16 GenerateResearchSiteInMap(uint32 mapId);
         void GenerateResearchProjects();
         bool SolveResearchProject(uint32 spellId, SpellCastTargets& targets);
         void RandomizeSitesInMap(uint32 mapId, uint8 count);
@@ -1815,7 +1819,7 @@ class Player : public Unit, public GridObject<Player>
         void SendSurveyCast(uint32 count, uint32 max, uint32 branchId, bool completed);
 
         DigSite _digSites[MAX_RESEARCH_SITES];
-        ResearchSiteSet _researchSites;
+		//ResearchSiteList _reserchSites;
         CompletedProjectList _completedProjects;
         bool _archaeologyChanged;
 
@@ -2075,6 +2079,7 @@ class Player : public Unit, public GridObject<Player>
         void SaveToDB(bool create = false);
         void SaveInventoryAndGoldToDB(SQLTransaction& trans);                    // fast save function for item/money cheating preventing
         void SaveGoldToDB(SQLTransaction& trans);
+		
 
         static void SetUInt32ValueInArray(Tokenizer& data, uint16 index, uint32 value);
         static void Customize(ObjectGuid::LowType guid, WorldPackets::Character::CharCustomizeInfo* info);
@@ -2779,6 +2784,7 @@ class Player : public Unit, public GridObject<Player>
         void SetBGTeam(uint32 team);
         uint32 GetBGTeam() const;
         TeamId GetBGTeamId() const;
+		uint32 GetBGQueueTeam() const;
         uint16 GetLastActiveSpec(bool lfgOrBg = false) const;
         void SaveLastSpecialization(bool lfgOrBg = false);
 
@@ -2796,8 +2802,8 @@ class Player : public Unit, public GridObject<Player>
         bool HasWinToday(uint8 type) { return _hasWinToday[type]; }
         void SetWinToday(bool isWinner, uint8 type = 0, bool all = true);
         
-        void ModifyDeathMatchStats(uint32 kills, uint32 deaths, uint64 damage, int32 rating, uint32 totalKills, uint32 matches = 1);
-        DeathMatchScore* getDeathMatchScore() { return &dmScore; }
+        void ModifyDeathMatchStats(uint32 kills, uint32 deaths, uint64 damage, int32 rating, uint32 total_kills, uint32 mathes = 1);
+        DeathMatchScore* getDeathMatchScore() {return &dmScore;}
         /*********************************************************/
         /***               OUTDOOR PVP SYSTEM                  ***/
         /*********************************************************/

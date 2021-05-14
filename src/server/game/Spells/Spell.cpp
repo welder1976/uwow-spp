@@ -3484,6 +3484,8 @@ void Spell::DoTriggersOnSpellHit(Unit* unit, uint32 effMask)
 
 void Spell::DoAllEffectOnTarget(GOTargetInfo* target)
 {
+	if (!target)
+		return;         // Corrigiendo crash por alguna razon target se hace null
     if (target->processed)                                  // Check target
         return;
     target->processed = true;                               // Target checked in apply effects procedure
@@ -4153,6 +4155,13 @@ void Spell::cast(bool skipCheck)
 												if (!target->HasAura(155722))
 													aura->SetCustomData(1);
 
+	if (Unit* caster = m_caster)
+		if (caster->getClass() == CLASS_DEATH_KNIGHT)
+			if (Aura* simulation = caster->GetAura(77616))
+				if (SpellInfo const* info = this->GetSpellInfo())
+					if (info->Id == 203286)
+						simulation->Remove();
+
     if (m_replaced && m_caster->getClass() == CLASS_MONK && m_spellInfo->IsDamageSpell())
     {
         // Mastery: Combo Strikes
@@ -4216,49 +4225,70 @@ void Spell::cast(bool skipCheck)
 		if (this->GetSpellInfo()->Categories.DefenseType != SPELL_DAMAGE_CLASS_NONE)
 		{
 			if (Pet* playerPet = playerCaster->GetPet())
-				if (playerPet->isAlive() && playerPet->isControlled() && (m_targets.GetTargetMask() & TARGET_FLAG_UNIT))
-					if (m_targets.GetObjectTarget())
-						if (Unit* target_ = m_targets.GetObjectTarget()->ToUnit())
-							playerPet->AI()->OwnerAttacked(target_);
+				if (playerPet->isAlive() && playerPet->isControlled() && (m_targets.GetTargetMask() & TARGET_FLAG_UNIT) && playerPet->HasReactState(REACT_HELPER))
+				{
+					if (playerPet->getVictim())
+						playerPet->AttackStop();
+					playerPet->ToCreature()->AI()->AttackStart(m_targets.GetUnitTarget());
+					//playerPet->AI()->OwnerAttacked(m_targets.GetUnitTarget());
+				}
 
+			//Hati Fix
+			for (Unit::ControlList::iterator itr = playerCaster->m_Controlled.begin(); itr != playerCaster->m_Controlled.end(); ++itr)
+				if (Creature* crt = ObjectAccessor::GetCreatureOrPetOrVehicle(*playerCaster, *itr))
+					if (crt->m_isHati && crt)
+					{
+						if (crt->getVictim())
+							crt->AttackStop();
+						crt->AI()->AttackStart(m_targets.GetUnitTarget());
+					}
+						
+
+					
 			if (sWorld->getBoolConfig(CONFIG_PLAYER_CONTROL_GUARDIAN_PETS))
 			{
 				if (m_targets.GetTargetMask() & TARGET_FLAG_UNIT)
 				{
 					if (m_targets.GetObjectTarget())
-						if (Unit* target = playerCaster->GetSelectedUnit())
 							for (Unit::ControlList::iterator itr = playerCaster->m_Controlled.begin(); itr != playerCaster->m_Controlled.end(); ++itr)
 								if (Creature* creature = ObjectAccessor::GetCreatureOrPetOrVehicle(*playerCaster, *itr))
 									if (creature->IsAIEnabled && (((creature->isPet() || creature->m_isHati) && creature->HasReactState(REACT_HELPER)) ||
 										(creature->isGuardian() && !creature->isPet() && !creature->m_isHati && creature->GetEntry() != 100868)))
 									{
-										creature->ClearUnitState(UNIT_STATE_MELEE_ATTACKING);
-										creature->AI()->AttackStart(target);
-
-										if (creature->GetEntry() == 69791 || creature->GetEntry() == 69792)
+										if (Unit* target = creature->getVictim())
 										{
-											if (SpellInfo const* spellInfo = this->GetSpellInfo())
-												if (spellInfo->Id == 100780 ||
-													spellInfo->Id == 107428 ||
-													spellInfo->Id == 100784 ||
-													spellInfo->Id == 113656 ||
-													spellInfo->Id == 117952 ||
-													spellInfo->Id == 115098)
-													creature->CastSpell(target, spellInfo->Id, true);
+											creature->ClearUnitState(UNIT_STATE_MELEE_ATTACKING);
+											creature->AI()->AttackStart(target);
+
+											if (creature->GetEntry() == 69791 || creature->GetEntry() == 69792)
+											{
+												if (SpellInfo const* spellInfo = this->GetSpellInfo())
+													if (spellInfo->Id == 100780 ||
+														spellInfo->Id == 107428 ||
+														spellInfo->Id == 100784 ||
+														spellInfo->Id == 113656 ||
+														spellInfo->Id == 117952 ||
+														spellInfo->Id == 115098)
+													{
+														creature->CastSpell(target, spellInfo->Id, true);
+													}
+											}
 										}
 									}
 				}
 				else if(SpellInfo const* spellInfo = this->GetSpellInfo())
 				{
-					if (playerCaster->HasAura(137639) && spellInfo->Id == 123986)
-						if (Unit* target = playerCaster->GetSelectedUnit())
+					if (playerCaster->HasAura(137639) && (spellInfo->Id == 123986 || spellInfo->Id == 222029)) // MaindHand Strike of the Windlord
 							for (Unit::ControlList::iterator itr = playerCaster->m_Controlled.begin(); itr != playerCaster->m_Controlled.end(); ++itr)
 								if (Creature* creature = ObjectAccessor::GetCreatureOrPetOrVehicle(*playerCaster, *itr))
-									if (creature->GetEntry() == 69791 || creature->GetEntry() == 69792)
+									if (Unit* target = creature->getVictim())
 									{
-										creature->ClearUnitState(UNIT_STATE_MELEE_ATTACKING);
-										creature->AI()->AttackStart(target);
-										creature->CastSpell(target, spellInfo->Id, true);
+										if (creature->GetEntry() == 69791 || creature->GetEntry() == 69792)
+										{
+											creature->ClearUnitState(UNIT_STATE_MELEE_ATTACKING);
+											creature->AI()->AttackStart(target);
+											creature->CastSpell(target, spellInfo->Id, true);
+										}
 									}
 								
 				}
@@ -4268,7 +4298,7 @@ void Spell::cast(bool skipCheck)
 				if (m_targets.GetTargetMask() & TARGET_FLAG_UNIT)
 				{
 					if (m_targets.GetObjectTarget())
-						if (Unit* target = playerCaster->GetSelectedUnit())
+						if (Unit* target = m_targets.GetUnitTarget())
 							for (Unit::ControlList::iterator itr = playerCaster->m_Controlled.begin(); itr != playerCaster->m_Controlled.end(); ++itr)
 								if (Creature* creature = ObjectAccessor::GetCreatureOrPetOrVehicle(*playerCaster, *itr))
 									if (creature->IsAIEnabled && ((creature->isPet() || creature->m_isHati) && creature->HasReactState(REACT_HELPER)) || creature->GetEntry() == 69791 || creature->GetEntry() == 69792)
@@ -4292,7 +4322,7 @@ void Spell::cast(bool skipCheck)
 				else if (SpellInfo const* spellInfo = this->GetSpellInfo())
 				{
 					if (playerCaster->HasAura(137639) && spellInfo->Id == 123986)
-						if (Unit* target = playerCaster->GetSelectedUnit())
+						if (Unit* target = m_targets.GetUnitTarget())
 							for (Unit::ControlList::iterator itr = playerCaster->m_Controlled.begin(); itr != playerCaster->m_Controlled.end(); ++itr)
 								if (Creature* creature = ObjectAccessor::GetCreatureOrPetOrVehicle(*playerCaster, *itr))
 									if (creature->GetEntry() == 69791 || creature->GetEntry() == 69792)
@@ -4308,14 +4338,16 @@ void Spell::cast(bool skipCheck)
 		else if (SpellInfo const* spellInfo = this->GetSpellInfo())
 		{
 			if (playerCaster->HasAura(137639) && (spellInfo->Id == 116847 || spellInfo->Id == 101546 || spellInfo->Id == 152175 || spellInfo->Id == 123986))
-						if (Unit* target = playerCaster->GetSelectedUnit())
 							for (Unit::ControlList::iterator itr = playerCaster->m_Controlled.begin(); itr != playerCaster->m_Controlled.end(); ++itr)
 								if (Creature* creature = ObjectAccessor::GetCreatureOrPetOrVehicle(*playerCaster, *itr))
-									if (creature->GetEntry() == 69791 || creature->GetEntry() == 69792)
+									if (Unit* target = creature->getVictim())
 									{
-										creature->ClearUnitState(UNIT_STATE_MELEE_ATTACKING);
-										creature->AI()->AttackStart(target);
-										creature->CastSpell(target, spellInfo->Id, true);
+										if (creature->GetEntry() == 69791 || creature->GetEntry() == 69792)
+										{
+											creature->ClearUnitState(UNIT_STATE_MELEE_ATTACKING);
+											creature->AI()->AttackStart(target);
+											creature->CastSpell(target, spellInfo->Id, true);
+										}
 									}
 
 		}
@@ -4689,7 +4721,7 @@ void Spell::cast(bool skipCheck)
 
     if (m_spellInfo->Cooldowns.RecoveryTime)
         if (Player* plr = m_caster->ToPlayer())
-            if (plr->HasInstantCastModForSpell(m_spellInfo))
+            if (plr->HasInstantCastModForSpell(m_spellInfo) && spellid != 190356) // Spell Blizzard - Frost Mage 
                 plr->RemoveSpellCooldown(spellid, true);
 
     if (!(_triggeredCastFlags & TRIGGERED_IGNORE_POWER_AND_REAGENT_COST))

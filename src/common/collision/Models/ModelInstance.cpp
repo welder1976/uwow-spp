@@ -66,7 +66,7 @@ namespace VMAP
 
     bool ModelInstance::intersectLine(const G3D::Ray& pRay, float& pMaxDist, bool pStopAtFirstHit) const
     {
-        if (!iModel)
+        if (iModel == nullptr || !iModel)
         {
             //std::cout << "<object not loaded>\n";
             return false;

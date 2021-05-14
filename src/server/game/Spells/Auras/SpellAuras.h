@@ -102,6 +102,7 @@ class Aura
 {
     friend Aura* Unit::_TryStackingOrRefreshingExistingAura(SpellInfo const* newAura, uint32 effMask, Unit* caster, float *baseAmount, Item* castItem, ObjectGuid casterGUID);
     public:
+		Trinity::AnyData Variables;
         void SetAuraTimer(int32 time, ObjectGuid guid = ObjectGuid::Empty);
         typedef cds::container::FeldmanHashMap< cds::gc::HP, ObjectGuid, AuraApplicationPtr, guidTraits > ApplicationMap;
 
@@ -167,10 +168,12 @@ class Aura
         int32 GetDuration() const { return m_duration; }
         int32 GetAllDuration() const { return m_allDuration; }
         void SetDuration(int32 duration, bool withMods = false);
+		void ModDuration(int32 duration, bool withMods = false) { SetDuration(GetDuration() + duration, withMods); }
         void RefreshDuration();
         void RefreshTimers();
         bool IsExpired() const { return !GetDuration();}
         bool IsPermanent() const { return GetMaxDuration() == -1; }
+
 
         uint8 GetCharges() const { return m_procCharges; }
         void SetCharges(uint8 charges);

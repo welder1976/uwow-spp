@@ -2749,10 +2749,7 @@ uint32 SpellInfo::CalcCastTime(Unit* caster, Spell* spell) const
     if (spell)
         spell->GetCaster()->ModSpellCastTime(this, castTime, spell);
 
-    if (!sWorld->getBoolConfig(CONFIG_NO_CAST_TIME))
-        return std::max(castTime, 0);
-    else
-        return 0;
+    return std::max(castTime, 0);
 }
 
 uint32 SpellInfo::GetMaxTicks() const
@@ -4134,7 +4131,7 @@ bool SpellInfo::IsMultiSingleTarget() const
         case 203539: // Greater Blessing of Wisdom
         case 211681: // Power Word: Fortitude (Honor Talent)
         case 214206: // Atonement(Honor Talent)
-        case 188550: // T18 Resto 4P lifebloom 2 targets
+		case 188550: // T18 Resto 4P lifebloom 2 targets
             return true;
         default:
             break;
@@ -4152,7 +4149,7 @@ uint32 SpellInfo::GetMultiSingleTargetCount() const
         case 211681: // Power Word: Fortitude (Honor Talent)
             return Effects[EFFECT_1]->BasePoints;
         case 214206: // Atonement(Honor Talent)
-        case 188550: // T18 Resto 4P lifebloom 2 targets
+		case 188550: // T18 Resto 4P lifebloom 2 targets
             return TargetRestrictions.MaxAffectedTargets;
         default:
             break;

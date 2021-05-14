@@ -169,9 +169,16 @@ enum SpecTypes
 
 enum PvPStats : uint32
 {
-    MainStatValue       = 13645,
-    StaminaStatValue    = 57874,
-    SecondaryStatValue  = 6698,
+    MainStatValue       = 11475, //Original: 13645  Fix:11475
+    StaminaStatValue    = 57874, //Original: 57874
+    SecondaryStatValue  = 6698,  //Original: 6698   Fix:5079
+};
+
+enum PvpPenalizationType : uint32
+{
+	CUSTOM_MOD_DAMAGE_DONE,
+	CUSTOM_MOD_HEAL_DONE,
+	CUSTOM_MOD_MASTERY
 };
 
 // used in script definitions

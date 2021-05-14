@@ -155,6 +155,8 @@ char const* Appender::getLogFilterTypeString(LogFilterType type)
         return "MAPSCRIPTS";
     case LOG_FILTER_NETWORKIO:
         return "NETWORKIO";
+	case LOG_FILTER_UPDATE_SQL:
+		return "UPDATESQL";
     case LOG_FILTER_SPELLS_AURAS:
         return "SPELLS_AURAS";
     case LOG_FILTER_ACHIEVEMENTSYS:

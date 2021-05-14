@@ -1,11 +1,22 @@
-db:https://drive.google.com/file/d/1vWbPU24TmcWEDmADxQmgHbKm04KS-52v/view?usp=sharing
-<<<<<<< HEAD
-# VCR Legion Core 2.0
+# ![logo](http://nordrassil.cubava.cu/files/2020/02/icono-Nordrassil-Gold.png)
+# Nordrassil Core 
 VS 2017 x64
 boost 1.64
 openssl 1.0
-
 cmake settings libeay32MDd.lib libeay32MD.lib  ssleay32MDd.lib ssleay32MD.lib
+
+Version 7.3.5 26124
+Este Servidor es Privado de World Of Warcraft Solo con Fines de uso privado por el Equipo de Desarrollo Nordrassil 
+
+CLIENTES LINK
+Descarga cliente completo desde FTP: ftp://10.97.1.12/Clientes%20de%20WOW/Legion%207.3.5%20%2026124.rar
+Descargar rund and play http://www.mediafire.com/file/fpsbts93ka2q0g5/Rund_and_play_BlackCore.rar/file
+Este cliente se va descargando mientras se juega.
+
+db world al 04/06/2020 solo agregar hotfix de tienda
+https://mega.nz/file/4SB2ECCJ#ztXHEFyDoiMoVgryySJdNcYYH64TnDzd3ApgHWa3DGc
+DATA LINK oficiales 26124
+https://www.mediafire.com/file/tbvzrzbda7xrnq6/data_7.3.5.7z/file
 
 Legion scripts:
 
@@ -40,7 +51,7 @@ Draenor
 - Auchindoun
 - Blackrock Foundry
 - Bloodmaul Slag Mines
-- Hellfire Citadel (Bosses are Present but not scripted) (R3DF4ST Discovery)
+- Hellfire Citadel
 - Highmaul
 - Iron Docks
 - Shadowmoon Burial Grounds
@@ -103,7 +114,7 @@ Scenarios
 - Troves of the Thunder King
 - Unga Ingoo
 
-Class spells completed ~90% (artifact spells included)
+Class spells 
 - DK
 - druid
 - hunter
@@ -115,12 +126,19 @@ Class spells completed ~90% (artifact spells included)
 - shaman
 - warlock
 - warrior
-- 
-Battlegrounds completed ~90% (rated BG included)
-Powerful Anticheat (detect LUA, MPQ and etc).
+- dh
 
-Designed GEODATA:
-- blink/charge use mmaps calculations (Say no to getting stuck on the slopes or falling under textures)
-- accurate movement points calculations
-=======
-# uwow
+Gestas funcionando
+- Paladin
+- Druida
+- Hunter
+- Warrior
+- Sacerdote 
+- Brujo
+- Dh
+- Picaro
+- DK
+- Chaman 
+- Bujo Fuego verde
+
+

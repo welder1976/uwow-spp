@@ -2,6 +2,7 @@
 #include "SpellTargetInfo.h"
 #include "SpellPackets.h"
 #include "TradeData.h"
+#include "SharedDefines.h"
 
 SpellDestination::SpellDestination()
 {
@@ -128,9 +129,14 @@ ObjectGuid SpellCastTargets::GetUnitTargetGUID() const
 
 Unit* SpellCastTargets::GetUnitTarget() const
 {
-    if (m_objectTarget)
-        return m_objectTarget->ToUnit();
-    return nullptr;
+	if (m_objectTarget && m_objectTarget->GetOjectType())
+	{
+		if (Unit* targetUnit = m_objectTarget->ToUnit()) 
+		{
+			return targetUnit;
+		}
+	}
+	return nullptr;
 }
 
 void SpellCastTargets::SetUnitTarget(Unit* target)

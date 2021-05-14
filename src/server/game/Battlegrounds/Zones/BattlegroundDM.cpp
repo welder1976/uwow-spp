@@ -33,13 +33,11 @@ void BattlegroundDeathMatch::StartingEventOpenDoors()
 bool BattlegroundDeathMatch::SetupBattleground()
 {
     for (uint8 i = 0; i < 6; ++i)
-    {
-        if (!AddObject(i, DM_Buffs[urand(0, 2)], dm_buf_pos[i].GetPositionX(), dm_buf_pos[i].GetPositionY(), dm_buf_pos[i].GetPositionZ(), dm_buf_pos[i].GetOrientation(), 0, 0, 0.7313537f, -0.6819983f, BUFF_RESPAWN_TIME))
+        if (!AddObject(i, DM_Buffs[urand(0,2)], dm_buf_pos[i].GetPositionX(), dm_buf_pos[i].GetPositionY(), dm_buf_pos[i].GetPositionZ(), dm_buf_pos[i].GetOrientation(), 0, 0, 0.7313537f, -0.6819983f, BUFF_RESPAWN_TIME))
         {
             TC_LOG_ERROR(LOG_FILTER_SQL, "BatteGroundWS: Failed to spawn some object Battleground not created!");
             return false;
         }
-    }
         
     return true;
 }
@@ -62,12 +60,7 @@ void BattlegroundDeathMatch::AddPlayer(Player* player)
 void BattlegroundDeathMatch::OnPlayerEnter(Player* player)
 {
     // Battleground::OnPlayerEnter(player);
-/*
     if (WorldSafeLocsEntry const* entry = GetClosestGraveYard(player))
-        player->TeleportTo(entry->MapID, entry->Loc.X, entry->Loc.Y, entry->Loc.Z, entry->Loc.O * M_PI / 180.0f);*/
-
-    static uint32 const BgAbGraveyardIds[7] = { 895, 894, 893, 897, 896, 898, 899 };
-    if (WorldSafeLocsEntry const* entry = sWorldSafeLocsStore.LookupEntry(BgAbGraveyardIds[0]))
         player->TeleportTo(entry->MapID, entry->Loc.X, entry->Loc.Y, entry->Loc.Z, entry->Loc.O * M_PI / 180.0f);
     
     player->SetByteValue(PLAYER_FIELD_BYTES_6, PLAYER_BYTES_6_OFFSET_ARENA_FACTION, DMTeam++);
@@ -78,10 +71,10 @@ void BattlegroundDeathMatch::OnPlayerEnter(Player* player)
     
     if (DeathMatchScore* dmscore =  player->getDeathMatchScore())
     {
-        if (dmscore->selectedMorph)
+        if (dmscore->selected_morph)
         {
-            player->SetCustomDisplayId(dmscore->selectedMorph);
-            player->SetDisplayId(dmscore->selectedMorph, true);
+            player->SetCustomDisplayId(dmscore->selected_morph);
+            player->SetDisplayId(dmscore->selected_morph, true);
         }
     }
 }
@@ -93,16 +86,13 @@ void BattlegroundDeathMatch::RemovePlayerAtLeave(ObjectGuid guid, bool Transport
         std::map<ObjectGuid, BattlegroundScore*> bgsm = GetBattlegroundScoreMap();
         std::map<ObjectGuid, BattlegroundScore*>::iterator itr = bgsm.find(guid);
         if (itr != bgsm.end() /*&& IsRated()*/)
-        {
-            player->ModifyDeathMatchStats(itr->second->GetScore(SCORE_KILLING_BLOWS), itr->second->GetScore(SCORE_DEATHS), itr->second->GetScore(SCORE_DAMAGE_DONE),
-                CalculateRating(itr->second), itr->second->GetScore(SCORE_KILLING_BLOWS));
-        }
+            player->ModifyDeathMatchStats(itr->second->GetScore(SCORE_KILLING_BLOWS), itr->second->GetScore(SCORE_DEATHS), itr->second->GetScore(SCORE_DAMAGE_DONE), CalculateRating(itr->second), itr->second->GetScore(SCORE_KILLING_BLOWS));
         
         player->RemoveAura(SPELL_FOCUSED_ASSAULT);
         
         if (DeathMatchScore* dmscore =  player->getDeathMatchScore())
         {
-            if (dmscore->selectedMorph)
+            if (dmscore->selected_morph)
             {
                 player->DeMorph();
                 player->ResetCustomDisplayId();
@@ -213,32 +203,33 @@ void BattlegroundDeathMatch::HandleKillPlayer(Player* victim, Player* killer)
 				{
 					switch (itr->second)
 					{
-					    case 3: SendSysMessageToAll(TEXT_KILLING_SPREE, killer); break;
-					    case 4: SendSysMessageToAll(TEXT_DOMINATING, killer); SendDirectMessageToAll(TEXT_DOMINATING, killer); break;
-					    case 5: SendSysMessageToAll(TEXT_MEGA_KILL, killer); SendDirectMessageToAll(TEXT_MEGA_KILL, killer); break;
-					    case 6: SendSysMessageToAll(TEXT_UNSTOPPABLE, killer); SendDirectMessageToAll(TEXT_UNSTOPPABLE, killer); break;
-					    case 7: SendSysMessageToAll(TEXT_WICKED_SICK, killer); SendDirectMessageToAll(TEXT_WICKED_SICK, killer); break;
-					    case 8: SendSysMessageToAll(TEXT_MONSTER_KILL, killer); SendDirectMessageToAll(TEXT_MONSTER_KILL, killer); break;
-					    case 9: SendSysMessageToAll(TEXT_GOD_LIKE, killer); SendDirectMessageToAll(TEXT_GOD_LIKE, killer); break;
-					    case 10:
-						    SendSysMessageToAll(TEXT_BEYOUND_GOD_LIKE, killer);
-						    SendDirectMessageToAll(TEXT_BEYOUND_GOD_LIKE, killer);
-						    break;
-					    default: // > 10
-						    if (urand(1, 3) == 2)
-						    {
-							    SendSysMessageToAll(TEXT_BEYOUND_GOD_LIKE, killer);
-							    SendDirectMessageToAll(TEXT_BEYOUND_GOD_LIKE, killer);
-						    }
-						    break;
+					case 3: SendSysMessageToAll(TEXT_KILLING_SPREE, killer); break;
+					case 4: SendSysMessageToAll(TEXT_DOMINATING, killer); SendDirectMessageToAll(TEXT_DOMINATING, killer); break;
+					case 5: SendSysMessageToAll(TEXT_MEGA_KILL, killer); SendDirectMessageToAll(TEXT_MEGA_KILL, killer); break;
+					case 6: SendSysMessageToAll(TEXT_UNSTOPPABLE, killer); SendDirectMessageToAll(TEXT_UNSTOPPABLE, killer); break;
+					case 7: SendSysMessageToAll(TEXT_WICKED_SICK, killer); SendDirectMessageToAll(TEXT_WICKED_SICK, killer); break;
+					case 8: SendSysMessageToAll(TEXT_MONSTER_KILL, killer); SendDirectMessageToAll(TEXT_MONSTER_KILL, killer); break;
+					case 9: SendSysMessageToAll(TEXT_GOD_LIKE, killer); SendDirectMessageToAll(TEXT_GOD_LIKE, killer); break;
+					case 10:
+						SendSysMessageToAll(TEXT_BEYOUND_GOD_LIKE, killer);
+						SendDirectMessageToAll(TEXT_BEYOUND_GOD_LIKE, killer);
+						break;
+					default: // > 10
+						if (urand(1, 3) == 2)
+						{
+							SendSysMessageToAll(TEXT_BEYOUND_GOD_LIKE, killer);
+							SendDirectMessageToAll(TEXT_BEYOUND_GOD_LIKE, killer);
+						}
+						break;
 					}
 				}
 			}
                 
-            // add aura for increasing taken damage
-            if (itr->second >= 5 && itr->second % 2 == 1) // only 5, 7, 9,.......
-                killer->AddAura(SPELL_FOCUSED_ASSAULT, killer);
-        }
+                // add aura for increasing taken damage
+                if (itr->second >= 5 && itr->second % 2 == 1) // only 5, 7, 9,.......
+                    killer->AddAura(SPELL_FOCUSED_ASSAULT, killer);
+                
+            }
             
         // common update
         UpdatePlayerScore(killer, SCORE_HONORABLE_KILLS, 1,  true);
@@ -258,6 +249,7 @@ void BattlegroundDeathMatch::EndBattleground(uint32 team)
     
     //if (!IsRated())
     //    return;
+    
     PvpRewardTypes type = PvpReward_DeathMatch;
     PvpReward* reward = sBattlegroundMgr->GetPvpReward(type);
     if (reward && GetPlayerScoresSize())
@@ -278,6 +270,7 @@ void BattlegroundDeathMatch::EndBattleground(uint32 team)
                     if (Player* player = ObjectAccessor::FindPlayer(GetBgMap(), itr->first))
                     {
                         bool isAlliance = player->GetTeam() == ALLIANCE;
+                        
                         if (roll_chance_f(reward->ChestChance))
                         {
                             uint32 chestId = isAlliance ? reward->ChestA : reward->ChestH;
@@ -415,6 +408,7 @@ void BattlegroundDeathMatch::EndBattleground(uint32 team)
                         }
                     }
                 }
+                
                 bgsm.erase(Max_itr); // delete this position. don't needed
             }
         }
@@ -422,18 +416,18 @@ void BattlegroundDeathMatch::EndBattleground(uint32 team)
 }
 
 
-int32 BattlegroundDeathMatch::CalculateRating(uint32 kills, uint32 dies, uint64 dmg)
+int32 BattlegroundDeathMatch::CalculateRating(uint32 kills, uint32 dies, uint64 dmg) const
 {
     if (!dmg || !kills)
         return 0;
-
+    
     // Not in vain I'm studying at the faculty of mathematics  =D
-    uint64 effective = kills * MIDDLE_HP / dmg; // this is how we regulate the number of kills with low damage and vice versa
-
+    uint64 effective = kills*MIDDLE_HP/dmg; // этим мы пытаемся исключить варианты, когда рога убил 1000 игроков, но нанес дамага на "5-ых". или наоборот. Игрок намесил дамага на 1000 килов, но никого так и не убил
+    
     if (effective == 0)
         return 0;
-
-    int32 coef = effective * STEP_RATING / KILLS_PER_STEP - (dies / effective)*STEP_RATING;
+    
+    int32 coef = effective*STEP_RATING/KILLS_PER_STEP - (dies/effective)*STEP_RATING;
     return coef;
 }
 

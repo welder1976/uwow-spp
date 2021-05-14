@@ -4,6 +4,7 @@
 */
 
 #include "ScriptMgr.h"
+#include "SpellScript.h"
 #include "ScriptedCreature.h"
 #include "broken_shore.h"
 

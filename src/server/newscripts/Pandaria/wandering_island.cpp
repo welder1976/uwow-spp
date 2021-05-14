@@ -3,6 +3,9 @@
 #include "MapManager.h"
 #include "ScriptMgr.h"
 #include "Packets/WorldStatePackets.h"
+#include "ScriptedGossip.h"
+#include "ScriptedCreature.h"
+#include "Vehicle.h"
 
 enum panda_npc
 {
@@ -1887,7 +1890,7 @@ class spell_grab_carriage: public SpellScriptLoader
                 else if (caster->GetAreaId() == 5881) // Ferme Dai-Lo
                 {
                     carriage = caster->SummonCreature(57208, 588.70f, 3165.63f, 88.86f, 4.4156f, TEMPSUMMON_MANUAL_DESPAWN, 0, caster->GetGUID());
-                    yak      = caster->SummonCreature(59499, 587.61f, 3161.91f, 89.31f, 4.3633f, TEMPSUMMON_MANUAL_DESPAWN, 0, caster->GetGUID());
+                    yak      = caster->SummonCreature(59498, 587.61f, 3161.91f, 89.31f, 4.3633f, TEMPSUMMON_MANUAL_DESPAWN, 0, caster->GetGUID());
                     if (Player* p = caster->ToPlayer())
                         p->TalkedToCreature(_credit2, ObjectGuid::Empty);
                 }
@@ -1913,8 +1916,8 @@ class spell_grab_carriage: public SpellScriptLoader
                 //carriage->SetSpeed(MOVE_RUN, 1.5f, true);
                 //yak->SetSpeed(MOVE_WALK, yak->GetSpeed(MOVE_WALK), false);
 
-                //carriage->CastSpell(yak, 108627, true);   //visual
-                //carriage->GetMotionMaster()->MoveFollow(yak, 0.0f, M_PI);
+                carriage->CastSpell(yak, 108627, true);   //visual
+                carriage->GetMotionMaster()->MoveFollow(yak, 0.0f, M_PI);
                 yak->AI()->SetGUID(carriage->GetGUID(), 0); // enable following
                 caster->EnterVehicle(carriage, 0);
                 caster->RemoveAllMinionsByFilter(55213);
@@ -1937,6 +1940,7 @@ class vehicle_carriage : public VehicleScript
 {
     public:
         vehicle_carriage() : VehicleScript("vehicle_carriage") {}
+		
         void OnRemovePassenger(Vehicle* veh, Unit* passenger)
         {
             if(Unit* u = veh->GetBase())

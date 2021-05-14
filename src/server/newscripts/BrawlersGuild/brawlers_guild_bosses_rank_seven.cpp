@@ -515,7 +515,7 @@ public:
     }
 };
 
-void AddSC_brawlers_guild_bosses_rank_seven()
+void AddSC_the_brawlers_guild_bosses_rank_seven()
 {
     new boss_brawguild_nibleah();
     new boss_brawguild_serpent();

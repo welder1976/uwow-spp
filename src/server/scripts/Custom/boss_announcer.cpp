@@ -6,15 +6,13 @@
 #include <Player.h>
 #include "World.h"
 
-class Boss_Announcer : public PlayerScript
+class boss_announcer : public PlayerScript
 {
 public:
-	Boss_Announcer() : PlayerScript("Boss_Announcer") {}
+	boss_announcer() : PlayerScript("boss_announcer") {}
 
 	void OnCreatureKill(Player* player, Creature* boss)
 	{
-		if (sConfigMgr->GetBoolDefault("Boss.Announcer.Enable", true))
-		{
 		if (boss->isWorldBoss())
 			{
 			std::string plr = player->GetName();
@@ -26,14 +24,16 @@ public:
 			std::ostringstream stream;
 			stream << "|CFF" << tag_colour <<
 				"|r|cff" << plr_colour << " " << plr <<
-				"|r 's group killed |CFF" << boss_colour << "[" << boss_n << "]|r " "boss" << "!";
+				/*"|r 's group killed |CFF" << boss_colour << "[" << boss_n << "]|r " "boss" << "!";
+			sWorld->SendServerMessage(SERVER_MSG_STRING, stream.str().c_str());*/
+			"|rEl grupo de|r""|r|cff" << plr_colour << " " << plr << "|r mató a"" |CFF" << boss_colour << "[" << boss_n << "]|r " "que es un jefe" << "! Enhorabuena";
 			sWorld->SendServerMessage(SERVER_MSG_STRING, stream.str().c_str());
 			}
-		}
+		
 	};
 };
 
-void AddSC_Boss_Announcer()
+void AddSC_boss_announcer()
 {
-	new Boss_Announcer;
+	new boss_announcer();
 }

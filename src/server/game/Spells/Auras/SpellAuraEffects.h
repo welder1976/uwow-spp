@@ -35,6 +35,7 @@ class AuraEffect
     private:
         explicit AuraEffect(Aura* base, uint8 effIndex, float *baseAmount, Unit* caster, uint8 diffMode);
     public:
+		Trinity::AnyData Variables;
         ~AuraEffect();
         Unit* GetCaster() const { return GetBase()->GetCaster(); }
         Unit* GetSaveTarget() const { return saveTarget; }

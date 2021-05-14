@@ -689,7 +689,7 @@ public:
 };
 
 
-void AddSC_brawlers_guild_bosses_rank_two()
+void AddSC_the_brawlers_guild_bosses_rank_two()
 {
     new boss_brawguild_dippy();
     new boss_brawguild_bill();

@@ -176,7 +176,8 @@ public:
             { "pvp_reward",                   SEC_ADMINISTRATOR, true,  &HandleReloadPvpRewardCommand,                  "", NULL },
             { "world_loot_template",          SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesWorldCommand,         "", NULL },
             { "zone_loot_template",           SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesZoneCommand,          "", NULL },
-            { "luck_loot_template",           SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesLuckCommand,         "", NULL },
+            { "luck_loot_template",           SEC_ADMINISTRATOR, true,  &HandleReloadLootTemplatesLuckCommand,          "", NULL },
+			{ "pvp_penalizations",            SEC_ADMINISTRATOR, true,  &HandleReloadPvpPenalizations,                  "", NULL },
             { NULL,                           0,                 false, NULL,                                           "", NULL }
         };
         static ChatCommand commandTable[] =
@@ -1238,6 +1239,13 @@ public:
         handler->SendGlobalGMSysMessage("Conditions reloaded.");
         return true;
     }
+	static bool HandleReloadPvpPenalizations(ChatHandler* handler, const char* /*args*/)
+	{
+		TC_LOG_INFO(LOG_FILTER_GENERAL, "Re-Loading Custom Pvp Penalizations...");
+		sWorld->LoadCustomPvpPenalizations();
+		handler->SendGlobalGMSysMessage("Custom PvP Penalizations reloaded.");
+		return true;
+	}
 
     static bool HandleReloadCreatureText(ChatHandler* handler, const char* /*args*/)
     {

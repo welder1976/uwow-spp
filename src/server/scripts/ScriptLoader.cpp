@@ -24,7 +24,12 @@ void AddSC_battleground_warsong();
 void AddSC_battleground_kotmogu();
 void AddSC_battleground_shado_pan();
 
+void AddSC_BattlePay_Services();
+void AddSC_WhoLoggedScripts();
+void AddSC_BattlePay_Professions();
+
 // Customs
+
 void AddSC_event_april();
 void AddSC_Loskutik();
 void AddSC_midsummer_fire_festival();
@@ -32,8 +37,6 @@ void AddSC_bracket_commandscript();
 void AddSC_multi_vendor();
 void AddSC_traffic_commandscript();
 void AddSC_custom_reward();
-void AddSC_solocraft();
-void AddLfgSoloScripts();
 void AddSC_custum_trainer();
 void AddSC_command_donate();
 void AddSC_command_arena();
@@ -49,13 +52,6 @@ void AddSC_npc_PetBattleTrainer();
 void AddSC_darkmoon();
 void AddSC_event_tarecgosa();
 void Addsc_dalaran_invasion();
-void AddSC_RandomEnchantsScript();
-void AddSC_Death_Announcer();
-void AddSC_WhoLoggedScripts();
-void AddSC_spp_info();
-void AddSC_Boss_Announcer();
-void AddSC_announce_login();
-void AddSC_dynamic_xp_rate();
 
 // spells
 void AddSC_demonhunter_spell_scripts();
@@ -81,10 +77,12 @@ void AddSC_account_commandscript();
 void AddSC_achievement_commandscript();
 void AddSC_ban_commandscript();
 void AddSC_battlenet_account_commandscript();
+void AddSC_battlepay_commandscript();
 void AddSC_bf_commandscript();
 void AddSC_cast_commandscript();
 void AddSC_character_commandscript();
 void AddSC_cheat_commandscript();
+void AddSC_export_commandscript();
 void AddSC_debug_commandscript();
 void AddSC_disable_commandscript();
 void AddSC_event_commandscript();
@@ -265,7 +263,7 @@ void AddSC_wailing_caverns();                //Wailing caverns
 void AddSC_instance_wailing_caverns();
 void AddSC_zulfarrak();                     //Zul'Farrak generic
 void AddSC_instance_zulfarrak();            //Zul'Farrak instance script
-void AddSC_gilneas();
+
 
 void AddSC_instance_firelands(); // Firelands
 void AddSC_firelands();
@@ -612,10 +610,12 @@ void AddCommandScripts()
     AddSC_achievement_commandscript();
     AddSC_ban_commandscript();
     AddSC_battlenet_account_commandscript();
+	AddSC_battlepay_commandscript();
     AddSC_bf_commandscript();
     AddSC_cast_commandscript();
     AddSC_character_commandscript();
     AddSC_cheat_commandscript();
+	AddSC_export_commandscript();
     AddSC_debug_commandscript();
     AddSC_disable_commandscript();
     AddSC_event_commandscript();
@@ -800,7 +800,7 @@ void AddKalimdorScripts()
     AddSC_instance_wailing_caverns();
     AddSC_zulfarrak();                      //Zul'Farrak generic
     AddSC_instance_zulfarrak();             //Zul'Farrak instance script
-    AddSC_gilneas();
+
 
     AddSC_instance_firelands();             // Firelands
     AddSC_firelands();
@@ -1127,10 +1127,16 @@ void AddBattlegroundScripts()
     AddSC_battleground_shado_pan();
 }
 
+
+void AddBattlePayScripts()
+{
+	AddSC_BattlePay_Services();
+	AddSC_BattlePay_Professions();
+}
+
 void AddCustomScripts()
 {
 #ifdef SCRIPTS
-    AddLfgSoloScripts();
     AddSC_event_april();
     AddSC_Loskutik();
     AddSC_midsummer_fire_festival();
@@ -1138,7 +1144,6 @@ void AddCustomScripts()
     AddSC_multi_vendor();
     AddSC_traffic_commandscript();
     AddSC_custom_reward();
-    AddSC_solocraft();
     AddSC_custum_trainer();
     AddSC_command_donate();
     AddSC_command_arena();
@@ -1154,12 +1159,5 @@ void AddCustomScripts()
     AddSC_darkmoon();
     AddSC_event_tarecgosa();
     Addsc_dalaran_invasion();
-    AddSC_RandomEnchantsScript();
-    AddSC_Death_Announcer();
-    AddSC_WhoLoggedScripts();
-    AddSC_spp_info();
-    AddSC_Boss_Announcer();
-    AddSC_announce_login();
-	AddSC_dynamic_xp_rate();
 #endif
 }

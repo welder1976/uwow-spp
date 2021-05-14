@@ -21,8 +21,8 @@
 
 #include "Define.h"
 #include "Realm.h"
-#include <array>
 #include <map>
+#include <array>
 #include <vector>
 #include <unordered_set>
 #include <boost/asio.hpp>
@@ -93,7 +93,7 @@ public:
     Realm const* GetRealm(Battlenet::RealmHandle const& id) const;
 
     RealmBuildInfo const* GetBuildInfo(uint32 build) const;
-	uint32 GetMinorMajorBugfixVersionForBuild(uint32 build) const;
+    uint32 GetMinorMajorBugfixVersionForBuild(uint32 build) const;
     std::unordered_set<std::string> const& GetSubRegions() const { return _subRegions; }
     void WriteSubRegions(bgs::protocol::game_utilities::v1::GetAllValuesForAttributeResponse* response) const;
     std::vector<uint8> GetRealmEntryJSON(Battlenet::RealmHandle const& id, uint32 build) const;

@@ -46,6 +46,7 @@ enum HunterSpells
 };
 
 // Dire Beast - 120679
+// Modified by ScorpioN7
 class spell_hun_dire_beast : public SpellScriptLoader
 {
     public:
@@ -62,7 +63,7 @@ class spell_hun_dire_beast : public SpellScriptLoader
                     if (Unit* target = GetHitUnit())
                     {
                         // 213466 - charges to target
-                        _player->CastSpell(_player, 120694, true); // Energize
+                        _player->AddAura(120694, _player); // Energize
 
                         // Summon's skin is different function of Map or Zone ID
                         switch (_player->GetCurrentZoneID())
@@ -2263,6 +2264,84 @@ public:
 	}
 };
 
+// 135299 - Tar Trap Aura
+class spell_hunter_tar_trap_aura : public SpellScriptLoader
+{
+public:
+	spell_hunter_tar_trap_aura() : SpellScriptLoader("spell_hunter_tar_trap_aura") { }
+
+	class spell_hunter_tar_trap_aura_AuraScript : public AuraScript
+	{
+		PrepareAuraScript(spell_hunter_tar_trap_aura_AuraScript);
+
+		uint32 update = 0;
+
+		void OnUpdate(uint32 diff, AuraEffect* aurEff)
+		{
+			update += diff;
+
+			if (update >= 1000)
+			{
+				if (!GetCaster() || !GetOwner())
+					return;
+
+				if (Unit* target = GetOwner()->ToUnit())
+				{
+					//                Expert Trapper            Super Sticky Tar
+					if (GetCaster()->HasAura(199543) && !target->HasAura(201158))   
+					{
+						if (roll_chance_i(20))
+							GetCaster()->CastSpell(target, 201158, true);
+					}
+				}
+				update = 0;
+			}
+		}
+
+		void Register() override
+		{
+			OnEffectUpdate += AuraEffectUpdateFn(spell_hunter_tar_trap_aura_AuraScript::OnUpdate, EFFECT_0, SPELL_AURA_MOD_DECREASE_SPEED);
+		}
+	};
+
+	AuraScript* GetAuraScript() const override
+	{
+		return new spell_hunter_tar_trap_aura_AuraScript();
+	}
+};
+
+// 233022 - Spider Sting
+class spell_hun_spider_sting_silence : public SpellScriptLoader
+{
+public:
+	spell_hun_spider_sting_silence() : SpellScriptLoader("spell_hun_spider_sting_silence") { }
+
+	class spell_hun_spider_sting_silence_SpellScript : public SpellScript
+	{
+		PrepareSpellScript(spell_hun_spider_sting_silence_SpellScript)
+
+		void HandleAfterCast()
+		{
+			if (Unit* caster = GetCaster())
+				if (Aura* aura = caster->GetAura(202914)) // 202914 Spider Sting
+				{
+					caster->RemoveAurasDueToSpell(202914);
+					//caster->CastSpell(caster, 202933, true); // 202933 Spider Sting silence
+				}
+		}
+
+		void Register() override
+		{
+			AfterCast += SpellCastFn(spell_hun_spider_sting_silence_SpellScript::HandleAfterCast);
+		}
+	};
+
+	SpellScript* GetSpellScript() const override
+	{
+		return new spell_hun_spider_sting_silence_SpellScript();
+	}
+};
+
 void AddSC_hunter_spell_scripts()
 {
     new spell_hun_dire_beast();
@@ -2307,4 +2386,6 @@ void AddSC_hunter_spell_scripts()
     RegisterSpellScript(spell_hun_explosive_trap);
     RegisterAreaTriggerAI(areatrigger_hun_windburst);
 	new spell_hun_bestial_wrath();
+	new spell_hunter_tar_trap_aura();
+	new spell_hun_spider_sting_silence();
 }

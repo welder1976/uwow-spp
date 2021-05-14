@@ -392,8 +392,8 @@ void PetAI::AttackStart(Unit* target)
     if (!CanAttack(target))
         return;
 
-    if (Unit* owner = me->GetOwner())
-        owner->SetInCombatWith(target);
+   /* if (Unit* owner = me->GetOwner())
+        owner->SetInCombatWith(target);*/
 
     DoAttack(target, true);
 }

@@ -2231,6 +2231,10 @@ void Unit::CalculateMeleeDamage(Unit* victim, uint32 damage, CalcDamageInfo* dam
     damageInfo->damageBeforeHit = damage;
     damage = damageInfo->target->MeleeDamageBonusTaken(this, damage, damageInfo->attackType);
 
+	if (attackType == OFF_ATTACK)
+		if (getClass() == CLASS_WARRIOR && HasAura(200871) && HasAura(184362)) // Focus In Chaos
+			AddPct(damage, 100);
+
     // Calculate armor reduction
     if (IsDamageReducedByArmor(static_cast<SpellSchoolMask>(damageInfo->damageSchoolMask)))
     {
@@ -2532,6 +2536,9 @@ bool Unit::IsDamageReducedByArmor(SpellSchoolMask schoolMask, SpellInfo const* s
         // Ignore magic class spells
         if (spellInfo->HasAttribute(SPELL_ATTR4_IGNORE_RESISTANCES) && spellInfo->Categories.DefenseType == SPELL_DAMAGE_CLASS_MAGIC)
             return false;
+
+		if (spellInfo->Id == 772) // Rend warrior Arm
+			return true;
 
         for (int i = 0; i < MAX_SPELL_EFFECTS; ++i)
         {
@@ -3271,9 +3278,14 @@ bool Unit::isInCombat() const
 uint32 Unit::CalculateDamage(WeaponAttackType attType, bool normalized, bool addTotalPct, Unit* victim)
 {
     float min_damage, max_damage = 0.0f;
-
-    if (IsPlayer() && (normalized || !addTotalPct))
-        ToPlayer()->CalculateMinMaxDamage(attType, normalized, addTotalPct, min_damage, max_damage);
+	uint32 spec_id = 0;
+	if (this->IsPlayer())
+		spec_id = GetUInt32Value(PLAYER_FIELD_CURRENT_SPEC_ID);
+	// No se obtiene el dps del arma correctamente para estas clases
+	if (IsPlayer() && (normalized || !addTotalPct) && 
+		spec_id != SPEC_SHAMAN_ENHANCEMENT && spec_id != SPEC_HUNTER_MARKSMAN && spec_id != SPEC_HUNTER_BEASTMASTER)
+		ToPlayer()->CalculateMinMaxDamage(attType, normalized, addTotalPct, min_damage, max_damage);
+	
     else if (Creature* creature = ToCreature())
     {
         float weapon_mindamage = 0;
@@ -8591,6 +8603,25 @@ bool Unit::HandleDummyAuraProc(Unit* victim, DamageInfo* dmgInfoProc, AuraEffect
         {
             switch (dummySpell->Id)
             {
+				case 224103: // 
+				{
+					if (procSpell->Id == 1122 || procSpell->Id == 22703 || procSpell->Id == 111685 ||
+						procSpell->Id == 226802)
+					{
+						if (Unit* caster = triggeredByAura->GetCaster())
+						{
+							if (caster->HasAura(134735) || caster->HasAura(197912))
+							{
+								if (!caster->HasAura(226802))
+								{
+									caster->CastSpell(caster, 224105, true);
+									return true;
+								}
+							}
+						}
+					}									
+					return false;
+				}
                 case 212580: // Eye of the Observer
                 {
                     if (procSpell->Categories.DefenseType == SPELL_DAMAGE_CLASS_MELEE ||
@@ -8689,6 +8720,9 @@ bool Unit::HandleDummyAuraProc(Unit* victim, DamageInfo* dmgInfoProc, AuraEffect
                     if (!warlock)
                         return false;
 
+					if (!dmgInfoProc->GetAttacker()->IsFriendlyTo(warlock))
+						return false;
+
                     triggered_spell_id = 108366;
 
                     uint8 capPct = 15;
@@ -8706,6 +8740,8 @@ bool Unit::HandleDummyAuraProc(Unit* victim, DamageInfo* dmgInfoProc, AuraEffect
                     if (Unit::AuraEffectList const* mAbsorbtionPercent = warlock->GetAuraEffectsByType(SPELL_AURA_MOD_ABSORB_AMOUNT))
                         for (Unit::AuraEffectList::const_iterator i = mAbsorbtionPercent->begin(); i != mAbsorbtionPercent->end(); ++i)
                             AddPct(basepoints0, (*i)->GetAmount());
+					
+					int32 soulLinkHeal = basepoints0;					
 
                     if (pet)
                     {
@@ -8742,6 +8778,25 @@ bool Unit::HandleDummyAuraProc(Unit* victim, DamageInfo* dmgInfoProc, AuraEffect
                             return;
                         warlock->CastCustomSpell(warlock, triggered_spell_id, &basepoints0, nullptr, nullptr, true);
                     });
+
+					if (Aura* aura = warlock->GetAura(108446)) 
+					{
+						if (basepoints0 < maxAbsorb) 
+						{
+							int32 ownerPerc = aura->GetEffect(EFFECT_1)->GetAmount();
+							int32 petPerc = aura->GetEffect(EFFECT_2)->GetAmount();
+							warlock->AddDelayedEvent(20, [soulLinkHeal, warlock, ownerPerc, petPerc]() -> void
+							{
+								if (!warlock)
+									return;
+
+								float bp0 = CalculatePct(soulLinkHeal, ownerPerc);
+								float bp1 = CalculatePct(soulLinkHeal, petPerc);
+
+								warlock->CastCustomSpell(warlock, 108447, &bp0, &bp1, NULL, true);
+							});
+						}						
+					}					
                     return true;
                 }
             }
@@ -9510,6 +9565,13 @@ bool Unit::HandleDummyAuraProc(Unit* victim, DamageInfo* dmgInfoProc, AuraEffect
                             if (basepoints0 > AP)
                                 basepoints0 = AP;
 
+							if (Aura* EmpoweredStormlash = this->GetAura(210731))
+							{
+								if (AuraEffect* EmpoweredStormlashEff = EmpoweredStormlash->GetEffect(EFFECT_1))
+								{
+									AddPct(basepoints0, EmpoweredStormlashEff->GetAmount());
+								}
+							}
                             shaman->CastCustomSpell(target, 195256, &basepoints0, nullptr, nullptr, true, nullptr);
                             AddSpellCooldown(195222, 0, getPreciseTime() + cooldown);
                         }
@@ -9623,6 +9685,22 @@ bool Unit::HandleDummyAuraProc(Unit* victim, DamageInfo* dmgInfoProc, AuraEffect
 
                     return true;
                 }
+				// Stormbringer (pasive)
+				case 201845:
+				{
+					if (HasSpellCooldown(201845))
+						return false;
+
+					if (dmgInfoProc->GetAttackType() != BASE_ATTACK && dmgInfoProc->GetAttackType() != OFF_ATTACK)
+						return false;
+					// Stormstrike or Windstrike cant reset his own CD
+					if (procSpell && (procSpell->Id == 32175 || procSpell->Id == 32176 || procSpell->Id == 115357 || procSpell->Id == 115360))
+						return false;
+
+					AddSpellCooldown(201845, 0, 500);
+					CastSpell(this, 201846, true);
+					return true;
+				}
                 case 209385:
                 {
                     Player* player = ToPlayer();
@@ -10603,8 +10681,12 @@ bool Unit::HandleProcTriggerSpell(Unit* victim, DamageInfo* dmgInfoProc, AuraEff
                         if (!damage || !IsPlayer())
                             return false;
 
-                        if (Unit* shaman = triggeredByAura->GetCaster())
-                            shaman->CastSpell(victim, 213307, true);
+						if (Unit* shaman = triggeredByAura->GetCaster())
+						{
+							RemoveAurasDueToSpell(207835);
+							shaman->AddAura(195222, this);
+							//shaman->CastSpell(victim, 213307, true);
+						}
                         break;
                     }
                 }
@@ -12826,9 +12908,29 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uin
             AddPct(DoneTotalMod, _perc);
         }
     }
-
-    if (effectInfo->PvPMultiplier && CanPvPScalar())
-        DoneTotalMod *= effectInfo->PvPMultiplier;
+	
+	if (effectInfo->PvPMultiplier && CanPvPScalar())
+	{
+		DoneTotalMod *= effectInfo->PvPMultiplier;
+		// Some spell are penalizated for specific specialization
+		switch (spellProto->Id)
+		{
+		case 164812: // Moon Fire only have Pvp Penalization for Balance specialization 50%
+		case 164815: // Sun  Fire only have Pvp Penalization for Balance specialization 50%
+		{
+			if (effIndex == EFFECT_1 && IsPlayer() && ToPlayer()->GetUInt32Value(PLAYER_FIELD_CURRENT_SPEC_ID) != SPEC_DRUID_BALANCE)
+			{
+				DoneTotalMod /= effectInfo->PvPMultiplier;
+			}
+			break;
+		}
+		case 589: // Shadow Word: Pain only have Pvp Penalization for Shadow specialization 80%
+			if (IsPlayer() && ToPlayer()->GetUInt32Value(PLAYER_FIELD_CURRENT_SPEC_ID) != SPEC_PRIEST_SHADOW)
+			{
+				DoneTotalMod /= effectInfo->PvPMultiplier;
+			}
+		}
+	}
 
     tmpDamage = (int32(pdamage) + DoneTotal) * DoneTotalMod;
 
@@ -13010,9 +13112,10 @@ uint32 Unit::SpellDamageBonusTaken(Unit* caster, SpellInfo const* spellProto, ui
         return false;
     });
 
-    Player* spellModOwner = GetSpellModOwner();
-    if (spellModOwner)
-        pdamage -= CalculatePct(pdamage, (spellModOwner->GetFloatValue(PLAYER_FIELD_VERSATILITY) + spellModOwner->GetFloatValue(PLAYER_FIELD_VERSATILITY_BONUS)) / 2.f);
+	// Already calculate in Unit::CalculateSpellDamageTaken
+    //Player* spellModOwner = GetSpellModOwner();
+    //if (spellModOwner)
+    //    pdamage -= CalculatePct(pdamage, (spellModOwner->GetFloatValue(PLAYER_FIELD_VERSATILITY) + spellModOwner->GetFloatValue(PLAYER_FIELD_VERSATILITY_BONUS)) / 2.f);
 
     // from positive and negative SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN
     // multiplicative bonus, for example Dispersion + Shadowform (0.10*0.85=0.085)
@@ -13561,6 +13664,10 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
     if (spellProto->Id == 108366)
         return healamount;
 
+	// Cloudburst spell Shaman Restauration
+	if (spellProto->Id == 157503)
+		return healamount;
+
     float DoneTotalMod = 1.0f;
     int32 DoneTotal = 0;
 
@@ -13672,7 +13779,9 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellInfo const* spellProto, ui
 
     if (effectInfo->PvPMultiplier && CanPvPScalar())
         heal *= effectInfo->PvPMultiplier;
-
+	// Moon Fire and Sun Fire only have Pvp Penalization for Balance specialization 50%
+	if (spellProto->Id == 8004 && IsPlayer() && ToPlayer()->GetUInt32Value(PLAYER_FIELD_CURRENT_SPEC_ID) != SPEC_SHAMAN_RESTORATION)
+		heal /= 1.2f;
     // apply spellmod to Done amount
     if (damagetype != DOT)
     {
@@ -14048,7 +14157,7 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
             if ((*i)->GetSpellInfo()->AuraRestrictions.CasterAuraState && !HasAuraState(AuraStateType((*i)->GetSpellInfo()->AuraRestrictions.CasterAuraState)))
                 continue;
 
-            if ((*i)->GetMiscValue() & spellProto->GetSchoolMask() && !(spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_NORMAL))
+            if ((*i)->GetMiscValue() != SPELL_SCHOOL_MASK_ALL && (*i)->GetMiscValue() & spellProto->GetSchoolMask() && !(spellProto->GetSchoolMask() & SPELL_SCHOOL_MASK_NORMAL))
             {
                 if ((*i)->GetSpellInfo()->EquippedItemClass == -1)
                     AddPct(DoneTotalMod, (*i)->GetAmount());
@@ -14185,9 +14294,9 @@ uint32 Unit::MeleeDamageBonusTaken(Unit* attacker, uint32 pdamage, WeaponAttackT
                     AddPct(TakenTotalMod, (*i)->GetAmount());
         }
     }
-
-    if (Player* spellModOwner = GetSpellModOwner())
-        TakenTotalMod -= CalculatePct(1.0, (spellModOwner->GetFloatValue(PLAYER_FIELD_VERSATILITY) + spellModOwner->GetFloatValue(PLAYER_FIELD_VERSATILITY_BONUS)) / 2.f);
+	// Already calculate in Unit::CalculateSpellDamageTaken 
+    //if (Player* spellModOwner = GetSpellModOwner())
+    //    TakenTotalMod -= CalculatePct(1.0, (spellModOwner->GetFloatValue(PLAYER_FIELD_VERSATILITY) + spellModOwner->GetFloatValue(PLAYER_FIELD_VERSATILITY_BONUS)) / 2.f);
 
     // ..taken
     TakenTotalMod *= GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN, GetMeleeDamageSchoolMask());
@@ -22134,7 +22243,8 @@ void Unit::Kill(Unit* victim, bool durabilityLoss, SpellInfo const* spellProto)
             auto dueler = ObjectAccessor::FindPlayer(plrVictim->duel->opponent);
 
             plrVictim->CombatStopWithPets(true);
-            dueler->CombatStopWithPets(true);
+			if (dueler) // Corigiendo crash que se produce al ser duell NULL y termina en la linea 4240  de unit.cpp 
+				dueler->CombatStopWithPets(true);
             plrVictim->AddDelayedEvent(1000, [plrVictim]() -> void
             {
                 plrVictim->DuelComplete(DUEL_INTERRUPTED);

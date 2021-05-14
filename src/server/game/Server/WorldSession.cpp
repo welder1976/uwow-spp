@@ -1140,7 +1140,7 @@ void WorldSession::InitializeSession()
     if (!realmHolder->Initialize(GetAccountId(), GetBattlenetAccountId()))
     {
         delete realmHolder;
-        SendAuthResponse(ERROR_INTERNAL, false);
+        SendAuthResponse(ERROR_INTERNAL, false, false);
         return;
     }
 
@@ -1149,7 +1149,7 @@ void WorldSession::InitializeSession()
     {
         delete realmHolder;
         delete holder;
-        SendAuthResponse(ERROR_INTERNAL, false);
+        SendAuthResponse(ERROR_INTERNAL, false, false);
         return;
     }
 
@@ -1164,8 +1164,27 @@ void WorldSession::InitializeSessionCallback(SQLQueryHolder* realmHolder, SQLQue
     LoadCharacterTemplates(holder->GetPreparedResult(AccountInfoQueryHolder::GLOBAL_REALM_CHARACTER_TEMPLATE));
     LoadAchievement(realmHolder->GetPreparedResult(AccountInfoQueryHolderPerRealm::ACHIEVEMENTS));
 
+	//QueryResult resultp = LoginDatabase.PQuery("SELECT limit FROM account WHERE id = %u", GetAccountId());
+
+	QueryResult resultado = LoginDatabase.PQuery("SELECT `limit` FROM account WHERE id = %u", GetAccountId());
+	bool chartemplate = false;
+	if (resultado)
+	{
+		Field* fields = resultado->Fetch();
+		uint32 counterpoll = fields[0].GetInt8();
+	
+
+		if (counterpoll < 3)
+			chartemplate = true;
+		else
+			chartemplate = false;
+	}
+	
+
+	
+
     if (!m_inQueue)
-        SendAuthResponse(ERROR_OK, false);
+        SendAuthResponse(ERROR_OK, chartemplate, false);
     else
         SendAuthWaitQue(0);
 

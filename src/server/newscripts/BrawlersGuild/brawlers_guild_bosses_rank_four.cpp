@@ -729,7 +729,7 @@ public:
 
 
 
-void AddSC_brawlers_guild_bosses_rank_four()
+void AddSC_the_brawlers_guild_bosses_rank_four()
 {
     new boss_brawguild_burnstachio();
     new npc_brawguild_burnstachio_ground();

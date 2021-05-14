@@ -684,12 +684,12 @@ void WorldSession::HandleInitiateTrade(WorldPackets::Trade::InitiateTrade& packe
         return;
     }
 
-    if (!sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_TRADE) && pOther->GetTeam() != player->GetTeam() || pOther->HasFlag(PLAYER_FIELD_PLAYER_FLAGS_EX, PLAYER_FLAGS_EX_MERCENARY_MODE) || player->HasFlag(PLAYER_FIELD_PLAYER_FLAGS_EX, PLAYER_FLAGS_EX_MERCENARY_MODE))
+    /*if (!sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_TRADE) && pOther->GetTeam() != player->GetTeam() || pOther->HasFlag(PLAYER_FIELD_PLAYER_FLAGS_EX, PLAYER_FLAGS_EX_MERCENARY_MODE) || player->HasFlag(PLAYER_FIELD_PLAYER_FLAGS_EX, PLAYER_FLAGS_EX_MERCENARY_MODE))
     {
         info.Status = TRADE_STATUS_WRONG_FACTION;
         SendTradeStatus(info);
         return;
-    }
+    }*/
 
     if (!pOther->IsWithinDistInMap(player, TRADE_DISTANCE, false))
     {

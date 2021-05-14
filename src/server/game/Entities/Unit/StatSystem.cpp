@@ -259,24 +259,10 @@ bool Player::GetCustomPvPMods(float& val, uint32 type, uint32 specID) const
 {
     switch (specID)
     {
-//         case SPEC_DEMON_HUNER_HAVOC:
-//         {
-//             if (type == AGILITY_MULTIPLICATIVE)
-//             {
-//                 val = 0.75f;
-//                 return true;
-//             }
-//             break;
-//         }
         case SPEC_DEMON_HUNER_VENGEANCE:
         {
             switch (type)
             {
-//                 case AGILITY_MULTIPLICATIVE:
-//                 {
-//                     val = 0.95f;
-//                     return true;
-//                 }
                 case ATTACK_POWER_FOR_ATTACKER:
                 {
                     val = 7.f;
@@ -287,24 +273,15 @@ bool Player::GetCustomPvPMods(float& val, uint32 type, uint32 specID) const
             }
             break;
         }
-//         case SPEC_DK_FROST:
-//         {
-//             if (type == STRENGTH_MULTIPLICATIVE)
-//             {
-//                 val = 0.8f;
-//                 return true;
-//             }
-//             break;
-//         }
         case SPEC_DK_BLOOD:
         {
             switch (type)
             {
-//                 case STAMINA_MULTIPLICATIVE:
-//                 {
-//                     val = 0.85f;
-//                     return true;
-//                 }
+                case STAMINA_MULTIPLICATIVE:
+				{
+					val = 0.7f;
+					return true;
+				}
                 case ATTACK_POWER_FOR_ATTACKER:
                 {
                     val = 7.f;
@@ -329,24 +306,19 @@ bool Player::GetCustomPvPMods(float& val, uint32 type, uint32 specID) const
             }
             break;
         }
-//         case SPEC_DRUID_CAT:
-//         {
-//             if (type == AGILITY_MULTIPLICATIVE)
-//             {
-//                 val = 0.87f;
-//                 return true;
-//             }
-//             break;
-//         }
         case SPEC_DRUID_BEAR:
+		case SPEC_DRUID_RESTORATION:
+		{
+			if (type == MOD_POWER_REGEN_OVERRIDE)
+			{
+				val = -13200.0f;
+				return true;
+			}
+			break;
+		}
         {
             switch (type)
             {
-//                 case AGILITY_MULTIPLICATIVE:
-//                 {
-//                     val = 0.85f;
-//                     return true;
-//                 }
                 case ATTACK_POWER_FOR_ATTACKER:
                 {
                     val = 7.f;
@@ -357,51 +329,15 @@ bool Player::GetCustomPvPMods(float& val, uint32 type, uint32 specID) const
             }
             break;
         }
-//         case SPEC_DRUID_RESTORATION:
-//         {
-//             if (type == INTELLECT_MULTIPLICATIVE)
-//             {
-//                 val = 1.27f;
-//                 return true;
-//             }
-//             break;
-//         }
-//         case SPEC_WARLOCK_AFFLICTION:
-//         {
-//             if (type == INTELLECT_MULTIPLICATIVE)
-//             {
-//                 val = 1.1f;
-//                 return true;
-//             }
-//             break;
-//         }
-//         case SPEC_WARLOCK_DEMONOLOGY:
-//         {
-//             if (type == STAMINA_MULTIPLICATIVE)
-//             {
-//                 val = 1.05f;
-//                 return true;
-//             }
-//             break;
-//         }
-//         case SPEC_MAGE_FROST:
-//         {
-//             if (type == INTELLECT_MULTIPLICATIVE)
-//             {
-//                 val = 1.08f;
-//                 return true;
-//             }
-//             break;
-//         }
-//         case SPEC_MAGE_FIRE:
-//         {
-//             if (type == INTELLECT_MULTIPLICATIVE)
-//             {
-//                 val = 0.98f;
-//                 return true;
-//             }
-//             break;
-//         }
+         case SPEC_MAGE_FROST:
+         {
+             if (type == INTELLECT_MULTIPLICATIVE)
+             {
+                 val = 1.01f;
+                 return true;
+             }
+             break;
+         }
         case SPEC_MAGE_ARCANE:
         {
             if (type == INTELLECT_MULTIPLICATIVE)
@@ -415,11 +351,20 @@ bool Player::GetCustomPvPMods(float& val, uint32 type, uint32 specID) const
         {
             if (type == INTELLECT_MULTIPLICATIVE)
             {
-                val = 1.335f;
+                val = 1.34f;
                 return true;
             }
             break;
         }
+		case SPEC_SHAMAN_RESTORATION:
+		{
+			if (type == MOD_POWER_REGEN_OVERRIDE)
+			{
+				val = -13200.0f;
+				return true;
+			}
+			break;
+		}
         case SPEC_WARRIOR_PROTECTION:
         {
             if (type == ATTACK_POWER_FOR_ATTACKER)
@@ -433,7 +378,7 @@ bool Player::GetCustomPvPMods(float& val, uint32 type, uint32 specID) const
         {
             if (type == AGILITY_MULTIPLICATIVE)
             {
-                val = 0.594f;
+                val = 0.60f;
                 return true;
             }
             break;
@@ -463,45 +408,41 @@ bool Player::GetCustomPvPMods(float& val, uint32 type, uint32 specID) const
                 val = 7.f;
                 return true;
             }
+			if (type == VERSATILITY_1_2_MULTIPLICATIVE || type == VERSATILITY_2_2_MULTIPLICATIVE)
+			{
+				val = 0.1f;
+				return true;
+			}
             break;
         }
-//         case SPEC_PALADIN_HOLY:
-//         {
-//             if (type == INTELLECT_MULTIPLICATIVE)
-//             {
-//                 val = 1.35f;
-//                 return true;
-//             }
-//             break;
-//         }
         case SPEC_PALADIN_PROTECTION:
-        {
-            switch (type)
-            {
-//                 case STRENGTH_MULTIPLICATIVE:
-//                 {
-//                     val = 0.76f;
-//                     return true;
-//                 }
-                case ATTACK_POWER_FOR_ATTACKER:
-                {
-                    val = 7.f;
-                    return true;
-                }
-                default:
-                    break;
-            }
-            break;
-        }
-//         case SPEC_PRIEST_SHADOW:
-//         {
-//             if (type == INTELLECT_MULTIPLICATIVE)
-//             {
-//                 val = 1.17f;
-//                 return true;
-//             }
-//             break;
-//         }
+		{
+			switch (type)
+			{
+			case ATTACK_POWER_FOR_ATTACKER:
+			{
+				val = 7.f;
+				return true;
+			}
+			case MOD_POWER_REGEN_OVERRIDE:
+			{
+				val = -8800.0f;
+				return true;
+			}
+			default:
+				break;
+			}
+			break;
+		}
+		case SPEC_PALADIN_HOLY:
+		{
+			if (type == MOD_POWER_REGEN_OVERRIDE)
+			{
+				val = -8800.0f;
+				return true;
+			}
+			break;
+		}
         case SPEC_PRIEST_HOLY:
         {
             if (type == INTELLECT_MULTIPLICATIVE)
@@ -515,7 +456,7 @@ bool Player::GetCustomPvPMods(float& val, uint32 type, uint32 specID) const
         {
             if (type == AGILITY_MULTIPLICATIVE)
             {
-                val = 0.69f;
+                val = 0.67f;
                 return true;
             }
             break;
@@ -524,20 +465,11 @@ bool Player::GetCustomPvPMods(float& val, uint32 type, uint32 specID) const
         {
             if (type == AGILITY_MULTIPLICATIVE)
             {
-                val = 0.985f;
+                val = 0.99f;
                 return true;
             }
             break;
         }
-//         case SPEC_HUNTER_SURVIVAL:
-//         {
-//             if (type == AGILITY_MULTIPLICATIVE)
-//             {
-//                 val = 0.85f;
-//                 return true;
-//             }
-//             break;
-//         }
         default:
             break;
     }

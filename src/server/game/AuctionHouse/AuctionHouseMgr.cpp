@@ -842,7 +842,7 @@ bool AuctionEntry::LoadFromFieldList(Field* fields)
 
     CreatureTemplate const* auctioneerInfo = sObjectMgr->GetCreatureTemplate(auctioneer);
     if (!auctioneerInfo)
-        TC_LOG_DEBUG(LOG_FILTER_SERVER_LOADING, "AuctionEntry::LoadFromFieldList() - Auction %u has not a existing auctioneer Entry: %u", Id, auctioneer);
+        TC_LOG_ERROR(LOG_FILTER_SERVER_LOADING, "AuctionEntry::LoadFromFieldList() - Auction %u has not a existing auctioneer Entry: %u", Id, auctioneer);
     else
         factionTemplateId = auctioneerInfo->faction;
 
@@ -850,7 +850,7 @@ bool AuctionEntry::LoadFromFieldList(Field* fields)
 
     if (!auctionHouseEntry)
     {
-		TC_LOG_DEBUG(LOG_FILTER_SERVER_LOADING, "AuctionEntry::LoadFromFieldList() - Auction %u has auctioneer Entry: %u with wrong faction %u", Id, auctioneer, factionTemplateId);
+        TC_LOG_ERROR(LOG_FILTER_SERVER_LOADING, "AuctionEntry::LoadFromFieldList() - Auction %u has auctioneer Entry: %u with wrong faction %u", Id, auctioneer, factionTemplateId);
         return false;
     }
 

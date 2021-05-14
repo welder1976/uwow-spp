@@ -87,6 +87,7 @@ enum LogFilterType
     LOG_FILTER_PATH_GENERATOR      = 58,
     LOG_FILTER_MMAPS               = 59,
     LOG_FILTER_VMAPS               = 60,
+	LOG_FILTER_UPDATE_SQL          = 61,
 
     LOG_FILTER_MAX
 };

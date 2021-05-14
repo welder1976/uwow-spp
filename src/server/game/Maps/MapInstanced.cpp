@@ -167,9 +167,9 @@ void MapInstanced::DelayedUpdate(const uint32 diff)
                 if (BattlegroundMap* map = instanced->ToBgMap())
                     if (Battleground* bg = map->GetBG())
                     {
-                        std::lock_guard<std::recursive_mutex> _bg_lock(bg->m_bg_lock);
-                        if (bg && !bg->ToBeDeleted())
-                            bg->Update(diff);
+						//std::lock_guard<std::recursive_mutex> _bg_lock(bg->m_bg_lock);
+						if (bg && !bg->ToBeDeleted())
+							bg->Update(diff);
                     }
 
                 instanced->DelayedUpdate(diff);

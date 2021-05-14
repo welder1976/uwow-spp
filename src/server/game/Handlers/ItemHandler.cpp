@@ -24,6 +24,7 @@
 #include "SpellPackets.h"
 #include "PlayerDefines.h"
 #include "ArtifactPackets.h"
+#include "Chat.h"
 
 void WorldSession::HandleSplitItemOpcode(WorldPackets::Item::SplitItem& splitItem)
 {
@@ -56,6 +57,13 @@ void WorldSession::HandleSplitItemOpcode(WorldPackets::Item::SplitItem& splitIte
 
 void WorldSession::HandleSwapInvItemOpcode(WorldPackets::Item::SwapInvItem& swapInvItem)
 {
+	//Fix bug arena
+	if (_player->InArena() || _player->InBattleground())
+	{
+		ChatHandler(_player).SendSysMessage("No Puede Mover Item En Ambientes PVP");
+		return;
+	}
+
     if (swapInvItem.Inv.Items.size() != 2)
         return;
 
@@ -94,6 +102,14 @@ void WorldSession::HandleSwapInvItemOpcode(WorldPackets::Item::SwapInvItem& swap
 
 void WorldSession::HandleAutoEquipItemSlotOpcode(WorldPackets::Item::AutoEquipItemSlot& autoEquipItemSlot)
 {
+
+	//Fix bug arena
+	if (_player->InArena() || _player->InBattleground())
+	{
+		ChatHandler(_player).SendSysMessage("No Puede Mover Item En Ambientes PVP");
+		return;
+	}
+
     if (autoEquipItemSlot.Inv.Items.size() != 1 || !Player::IsEquipmentPos(INVENTORY_SLOT_BAG_0, autoEquipItemSlot.ItemDstSlot))
         return;
 
@@ -109,6 +125,13 @@ void WorldSession::HandleAutoEquipItemSlotOpcode(WorldPackets::Item::AutoEquipIt
 
 void WorldSession::HandleSwapItem(WorldPackets::Item::SwapItem& swapItem)
 {
+	//Fix bug arena
+	if (_player->InArena() || _player->InBattleground())
+	{
+		ChatHandler(_player).SendSysMessage("No Puede Mover Item En Ambientes PVP");
+		return;
+	}
+
     if (swapItem.Inv.Items.size() != 2)
         return;
 
@@ -140,6 +163,14 @@ void WorldSession::HandleSwapItem(WorldPackets::Item::SwapItem& swapItem)
 
 void WorldSession::HandleAutoEquipItem(WorldPackets::Item::AutoEquipItem& autoEquipItem)
 {
+	//Fix bug arena
+	if (_player->InArena() || _player->InBattleground())
+	{
+		ChatHandler(_player).SendSysMessage("No Puede Mover Item En Ambientes PVP");
+		return;
+	}
+		
+
     if (autoEquipItem.Inv.Items.size() != 1)
         return;
 

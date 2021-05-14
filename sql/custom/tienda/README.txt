@@ -1,0 +1,1 @@
+La teinda trabaja por orden numeral no por fecha en ese orden se hacen los cambios respectivos

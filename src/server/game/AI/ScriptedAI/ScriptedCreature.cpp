@@ -320,12 +320,6 @@ void ScriptedAI::DoStartMovement(Unit* victim, float distance, float angle)
         me->GetMotionMaster()->MoveChase(victim, distance, angle);
 }
 
-void ScriptedAI::DoStopAttack()
-{
-    me->AttackStop();
-    me->SetReactState(REACT_PASSIVE);
-}
-
 void ScriptedAI::DoStartNoMovement(Unit* victim)
 {
     if (!victim)

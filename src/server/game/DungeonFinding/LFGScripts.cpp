@@ -38,8 +38,15 @@ void LFGPlayerScript::OnLogout(Player* player)
     if (!sLFGMgr->isOptionEnabled(LFG_OPTION_ENABLE_DUNGEON_FINDER | LFG_OPTION_ENABLE_RAID_BROWSER))
         return;
 
+	if (!player->GetGroup())
+		sLFGMgr->LeaveLfg(player->GetGUID());
+
     if (!player->GetGroup())
         sLFGMgr->LeaveLfg(player->GetGUID());
+	// Arreglo temporal dado que logear en Cronoviaje tufa las stadisticas
+	//if (player->GetMap()->GetLootDifficulty() == DIFFICULTY_TIMEWALKING || player->GetMap()->GetLootDifficulty() == DIFFICULTY_TIMEWALKING_RAID)
+	//	player->SavePositionInDB(player->m_homebindMapId, player->m_homebindX, player->m_homebindY, player->m_homebindZ, 1.0f, player->m_homebindAreaId, player->GetGUID());
+
 }
 
 void LFGPlayerScript::OnLogin(Player* player)
@@ -57,8 +64,8 @@ void LFGPlayerScript::OnLogin(Player* player)
         sLFGMgr->SetupGroupMember(guid, group->GetGUID());
     }
 
-    if (LFGDungeonData const* dungeonData = sLFGMgr->GetLFGDungeon(sLFGMgr->GetDungeon(gguid)))
-        player->EnterInTimeWalk(dungeonData->dbc, true);
+	if (LFGDungeonData const* dungeonData = sLFGMgr->GetLFGDungeon(sLFGMgr->GetDungeon(gguid)))
+       player->EnterInTimeWalk(dungeonData->dbc, true);
     /// @todo - Restore LfgPlayerData and send proper status to player if it was in a group
 }
 

@@ -7,6 +7,7 @@
 #include "ScriptedCreature.h"
 #include "CreatureTextMgr.h"
 #include "GameObjectAI.h"
+#include "ScriptedGossip.h"
 
 
 // 106429
@@ -638,7 +639,7 @@ public:
         void EnterCombat(Unit* who) override
         {
             events.RescheduleEvent(EVENT_1, 30000); // 215797
-            events.RescheduleEvent(EVENT_2, 2500); //  215690
+            events.RescheduleEvent(EVENT_2, 8500); //  215690
         }
 
         void JustDied(Unit* who) override
@@ -679,7 +680,7 @@ public:
                         break;
                     case EVENT_2:
                         DoCast(215690);
-                        events.RescheduleEvent(EVENT_2, 2500); //  215690
+                        events.RescheduleEvent(EVENT_2, 8500); //  215690
                         break;
                     case EVENT_3:
                         DoCast(169871);

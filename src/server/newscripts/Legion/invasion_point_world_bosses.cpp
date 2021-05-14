@@ -4,6 +4,9 @@
 
 #include "AreaTriggerAI.h"
 #include "QuestData.h"
+#include "ScriptedCreature.h"
+#include "SpellScript.h"
+#include "GameEventMgr.h"
 
 enum eSays
 {
@@ -1011,37 +1014,37 @@ class spell_enter_rift : public SpellScript
         {
             if (player->FindNearestCreature(125849, 10.0f) && !player->isGameMaster())
             {
-                if (WorldQuest const* wq = sQuestDataStore->GetWorldQuest(sQuestDataStore->GetQuestTemplate(48982)))
+                //if (WorldQuest const* wq = sQuestDataStore->GetWorldQuest(sQuestDataStore->GetQuestTemplate(48982)))
                     if (!player->WorldQuestCompleted(48982) && player->HasAchieved(12085))
                         return SPELL_CAST_OK;
             }
             else if (player->FindNearestCreature(126547, 10.0f) && !player->isGameMaster())
             {
-                if (WorldQuest const* wq = sQuestDataStore->GetWorldQuest(sQuestDataStore->GetQuestTemplate(49099)))
+                //if (WorldQuest const* wq = sQuestDataStore->GetWorldQuest(sQuestDataStore->GetQuestTemplate(49099)))
                     if (!player->WorldQuestCompleted(49099) && player->HasAchieved(12085))
                         return SPELL_CAST_OK;
             }
             else if (player->FindNearestCreature(126593, 10.0f) && !player->isGameMaster())
             {
-                if (WorldQuest const* wq = sQuestDataStore->GetWorldQuest(sQuestDataStore->GetQuestTemplate(49096)))
+                //if (WorldQuest const* wq = sQuestDataStore->GetWorldQuest(sQuestDataStore->GetQuestTemplate(49096)))
                     if (!player->WorldQuestCompleted(49096) && player->HasAchieved(12085))
                         return SPELL_CAST_OK;
             }
             else if (player->FindNearestCreature(126499, 10.0f) && !player->isGameMaster())
             {
-                if (WorldQuest const* wq = sQuestDataStore->GetWorldQuest(sQuestDataStore->GetQuestTemplate(49091)))
+                //if (WorldQuest const* wq = sQuestDataStore->GetWorldQuest(sQuestDataStore->GetQuestTemplate(49091)))
                     if (!player->WorldQuestCompleted(49091) && player->HasAchieved(12085))
                         return SPELL_CAST_OK;
             }
             else if (player->FindNearestCreature(126120, 10.0f) && !player->isGameMaster())
             {
-                if (WorldQuest const* wq = sQuestDataStore->GetWorldQuest(sQuestDataStore->GetQuestTemplate(49098)))
+                //if (WorldQuest const* wq = sQuestDataStore->GetWorldQuest(sQuestDataStore->GetQuestTemplate(49098)))
                     if (!player->WorldQuestCompleted(49098) && player->HasAchieved(12085))
                         return SPELL_CAST_OK;
             }
             else if (player->FindNearestCreature(125863, 10.0f) && !player->isGameMaster())
             {
-                if (WorldQuest const* wq = sQuestDataStore->GetWorldQuest(sQuestDataStore->GetQuestTemplate(49097)))
+                //if (WorldQuest const* wq = sQuestDataStore->GetWorldQuest(sQuestDataStore->GetQuestTemplate(49097)))
                     if (!player->WorldQuestCompleted(49097) && player->HasAchieved(12085))
                         return SPELL_CAST_OK;
             }

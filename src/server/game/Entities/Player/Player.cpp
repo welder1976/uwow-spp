@@ -47,7 +47,6 @@
 #include "CombatPackets.h"
 #include "Common.h"
 #include "ConditionMgr.h"
-#include "Config.h"
 #include "CreatureAI.h"
 #include "DatabaseEnv.h"
 #include "DB2Stores.h"
@@ -506,7 +505,7 @@ Player::~Player()
     while (!m_timeSyncQueue.empty())
         m_timeSyncQueue.pop();
 
-    _researchSites.clear();
+	//_reserchSites.clear();
     _completedProjects.clear();
     m_clientGUIDs.clear();
     m_extraLookList.clear();
@@ -641,9 +640,26 @@ bool Player::Create(ObjectGuid::LowType guidlow, WorldPackets::Character::Charac
     bool addArtifact = true;
     uint32 itemIlevel = 0;
     auto charTemplate = static_cast<CharacterTemplate const*>(nullptr);
+
+	QueryResult resultado = LoginDatabase.PQuery("SELECT `limit` FROM account WHERE id = %u", GetSession()->GetAccountId());
+	bool ct = false;
+	int8 counterpoll;
+	if (resultado)
+	{
+		Field* fields = resultado->Fetch();
+		counterpoll = fields[0].GetInt8();	
+		int8 limite = 3;
+		if (counterpoll < limite)
+			ct = true;
+		else
+			ct = false;
+
+	}
+
+
     if (createInfo->TemplateSet.is_initialized())
     {
-        if (sWorld->getBoolConfig(CONFIG_CHARACTER_TEMPLATE))
+        if (sWorld->getBoolConfig(CONFIG_CHARACTER_TEMPLATE) && ct)
         {
             charTemplate = sCharacterDataStore->GetCharacterTemplate(*createInfo->TemplateSet);
             if (charTemplate)
@@ -656,10 +672,14 @@ bool Player::Create(ObjectGuid::LowType guidlow, WorldPackets::Character::Charac
                         money = charTemplate->Money * 10000;
                         if (createInfo->Class != CLASS_DEMON_HUNTER)
                             loadoutItem = true;
-						m_cinematic = 1;
+                        m_cinematic = 1;
                         itemIlevel = charTemplate->iLevel;
                         break;
                     }
+
+			int8 counter = counterpoll + 1;
+			
+			LoginDatabase.PExecute("UPDATE `account` SET `limit` = %u WHERE `id` = %u", counter, GetSession()->GetAccountId());
         }
         else
         {
@@ -673,6 +693,7 @@ bool Player::Create(ObjectGuid::LowType guidlow, WorldPackets::Character::Charac
                     itemIlevel = charTemplateData->iLevel;
                     if (createInfo->Class != CLASS_DEMON_HUNTER)
                         loadoutItem = true;
+                    m_cinematic = 1;
                     addArtifact = charTemplateData->artifact;
                     charTemplateData->active = false;
 
@@ -1565,10 +1586,7 @@ void Player::Update(uint32 p_time)
                             setAttackTimer(OFF_ATTACK, ATTACK_DISPLAY_DELAY);
 
                     AttackerStateUpdate(victim, BASE_ATTACK, false, triggerSpellId, auraId);
-                    if (sWorld->getBoolConfig(CONFIG_HURT_IN_REAL_TIME))
-                        resetAttackTimer(BASE_ATTACK), AttackStop();
-                    else
-                        resetAttackTimer(BASE_ATTACK);
+                    resetAttackTimer(BASE_ATTACK);
                 }
             }
 
@@ -3832,9 +3850,41 @@ void Player::GiveXP(uint32 xp, Unit* victim, float groupRate /*= 1.0f*/)
     uint32 nextLvlXP = GetUInt32Value(PLAYER_FIELD_NEXT_LEVEL_XP);
     uint32 newXP = GetUInt32Value(PLAYER_FIELD_XP) + xp + bonusXP;
 
+	
+
     while (newXP >= nextLvlXP && level < sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
     {
         newXP -= nextLvlXP;
+
+		if (level == 109)
+		{
+			if (getRace() == RACE_NIGHTBORNE)
+			{
+				AchievementEntry const* AchievRaceAllied1 = sAchievementStore.LookupEntry(12413);
+				CompletedAchievement(AchievRaceAllied1);
+				
+			}
+
+			if (getRace() == RACE_HIGHMOUNTAIN_TAUREN)
+			{
+				AchievementEntry const* AchievRaceAllied2 = sAchievementStore.LookupEntry(12415);
+				CompletedAchievement(AchievRaceAllied2);
+
+			}
+			if (getRace() == RACE_VOID_ELF)
+			{
+				AchievementEntry const* AchievRaceAllied3 = sAchievementStore.LookupEntry(12291);
+				CompletedAchievement(AchievRaceAllied3);
+
+			}
+			if (getRace() == RACE_LIGHTFORGED_DRAENEI)
+			{
+				AchievementEntry const* AchievRaceAllied4 = sAchievementStore.LookupEntry(12414);
+				CompletedAchievement(AchievRaceAllied4);
+
+			}
+
+		}
 
         if (level < sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
             GiveLevel(level + 1);
@@ -5948,14 +5998,14 @@ void Player::TakeSpellCharge(SpellInfo const* spellInfo)
     switch (spellInfo->Id)
     {
         case 2050:
-            if (HasAura(238136)) // Cosmic Ripple
+            /*if (HasAura(238136)) // Cosmic Ripple
             {
                 AddDelayedEvent(_delay, [this]() -> void
                 {
                     if (this)
                         CastSpell(this, 243241, true);
                 });
-            }
+            }*/
             break;
     }
 }
@@ -7532,12 +7582,6 @@ void Player::RepopAtGraveyard(bool outInstance /*= false*/)
     // if grave found and no transport
     if (ClosestGrave && !GetTransport())
     {
-		if (sConfigMgr->GetBoolDefault("Hardcore.Mode.Enable", true))
-		{
-			TeleportTo(1, 16229.599609f, 16267.900391, 14.0f, 0.0f); // Orientation is initially in degrees
-			SaveToDB();
-		}
-		else
         SafeTeleport(ClosestGrave->MapID, ClosestGrave->Loc.X, ClosestGrave->Loc.Y, ClosestGrave->Loc.Z + 2.0f, (ClosestGrave->Loc.O * M_PI) / 180); // Orientation is initially in degrees
         if (isDead())                                        // not send if alive, because it used in TeleportTo()
         {
@@ -7816,7 +7860,7 @@ void Player::UpdateRating(CombatRating cr)
             case CR_VERSATILITY_HEALING_DONE:
             case CR_VERSATILITY_DAMAGE_TAKEN:
             {
-                amount = SecondaryStatValue;
+                amount = sWorld->getIntConfig(CONFIG_PVP_TEMPLATE_SECUNDARY_STAD);
                 break;
             }
             default:
@@ -8779,7 +8823,16 @@ void Player::CheckAreaExploreAndOutdoor()
                 else
                     XP = uint32(sObjectMgr->GetBaseXP(areaEntry->ExplorationLevel) * ExploreXpRate);
 
-                GiveXP(XP, NULL);
+				//XP custom Nordrassil
+				int8 bonus = 1;
+				/////////////////////////////////////////////////////
+				if (getLevel() < 60)
+					bonus = 5;
+				if (getLevel() < 100 && getLevel() >= 60)
+					bonus = 3;
+
+
+                GiveXP((XP * bonus), NULL);
                 SendExplorationExperience(areaId, XP);
             }
             TC_LOG_DEBUG(LOG_FILTER_PLAYER, "Player %u discovered a new area: %u", GetGUIDLow(), areaId);
@@ -9180,53 +9233,6 @@ bool Player::RewardHonor(Unit* victim, uint32 groupsize, int32 honor, bool pvpto
 
             m_saveKills = true;
         }
-		else if (sWorld->getBoolConfig(CONFIG_GAIN_HONOR_GUARD) && victim->ToCreature()->isGuard())
-		{
-			uint8 k_level = getLevel();
-			uint8 k_grey = Trinity::XP::GetGrayLevel(k_level);
-			uint8 v_level = victim->getLevel();
-
-			if (v_level <= k_grey)
-				return false;
-
-			uint32 victim_title = 0;
-			victimGuid = ObjectGuid::Empty;
-
-			honor_f = ceil(Trinity::Honor::hk_honor_at_level_f(k_level) * (v_level - k_grey) / (k_level - k_grey));
-
-			// count the number of playerkills in one day
-			ApplyModUInt32Value(PLAYER_FIELD_YESTERDAY_HONORABLE_KILLS, 1, true);
-			// and those in a lifetime
-			ApplyModUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS, 1, true);
-			UpdateAchievementCriteria(CRITERIA_TYPE_EARN_HONORABLE_KILL);
-			UpdateAchievementCriteria(CRITERIA_TYPE_HK_CLASS, victim->getClass());
-			UpdateAchievementCriteria(CRITERIA_TYPE_HK_RACE, victim->getRace());
-			UpdateAchievementCriteria(CRITERIA_TYPE_HONORABLE_KILL_AT_AREA, GetAreaId());
-			UpdateAchievementCriteria(CRITERIA_TYPE_HONORABLE_KILL, 1, 0, 0, victim);
-		}
-		else if (sWorld->getBoolConfig(CONFIG_GAIN_HONOR_ELITE) && victim->ToCreature()->isElite())
-		{
-			uint8 k_level = getLevel();
-			uint8 k_grey = Trinity::XP::GetGrayLevel(k_level);
-			uint8 v_level = victim->getLevel();
-
-			if (v_level <= k_grey)
-				return false;
-
-			uint32 victim_title = 0;
-			victimGuid = ObjectGuid::Empty;
-			honor_f = ceil(Trinity::Honor::hk_honor_at_level_f(k_level) * (v_level - k_grey) / (k_level - k_grey));
-			// count the number of playerkills in one day
-			ApplyModUInt32Value(PLAYER_FIELD_YESTERDAY_HONORABLE_KILLS, 1, true);
-
-			// and those in a lifetime
-			ApplyModUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS, 1, true);
-			UpdateAchievementCriteria(CRITERIA_TYPE_EARN_HONORABLE_KILL);
-			UpdateAchievementCriteria(CRITERIA_TYPE_HK_CLASS, victim->getClass());
-			UpdateAchievementCriteria(CRITERIA_TYPE_HK_RACE, victim->getRace());
-			UpdateAchievementCriteria(CRITERIA_TYPE_HONORABLE_KILL_AT_AREA, GetAreaId());
-			UpdateAchievementCriteria(CRITERIA_TYPE_HONORABLE_KILL, 1, 0, 0, victim);
-		}
         else
         {
             if (!victim->ToCreature()->isRacialLeader())
@@ -13260,7 +13266,7 @@ bool Player::HasDonateToken(uint32 count) const
 
 bool Player::DestroyDonateTokenCount(uint32 count)
 {
-  //  LoginDatabase.PExecute("Update battlenet_accounts set balans = balans - %u where id in (select battlenet_account from account where id = %u)", count, GetSession()->GetAccountId());
+    LoginDatabase.PExecute("Update battlenet_accounts set balans = balans - %u where id in (select battlenet_account from account where id = %u)", count, GetSession()->GetAccountId());
     
     if (sWorld->getBoolConfig(CONFIG_DONATE_ON_TESTS)) // if test, then free donate
         return true;
@@ -17986,6 +17992,11 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                     // processed in Player::CastItemUseSpell
                     break;
                 case ITEM_ENCHANTMENT_TYPE_PRISMATIC_SOCKET:
+				case ITEM_ENCHANTMENT_TYPE_ARTIFACT_POWER_BONUS_RANK_BY_TYPE:
+				case ITEM_ENCHANTMENT_TYPE_ARTIFACT_POWER_BONUS_RANK_BY_ID:
+				case ITEM_ENCHANTMENT_TYPE_BONUS_LIST_ID:
+				case ITEM_ENCHANTMENT_TYPE_BONUS_LIST_CURVE:
+				case ITEM_ENCHANTMENT_TYPE_ARTIFACT_POWER_BONUS_RANK_PICKER:
                     // nothing do..
                     break;
                 default:
@@ -18905,7 +18916,7 @@ bool Player::CanCompleteQuest(uint32 quest_id)
                             allObjComplete = false;
                         break;
                     default:
-                        TC_LOG_DEBUG(LOG_FILTER_PLAYER, "Player::CanCompleteQuest unknown objective type %u", obj.Type);
+                        TC_LOG_ERROR(LOG_FILTER_PLAYER, "Player::CanCompleteQuest unknown objective type %u", obj.Type);
                         return false;
                 }
             }
@@ -19211,6 +19222,9 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
     uint32 quest_id = quest->GetQuestId();
     Item* rewardItem = nullptr;
 
+
+
+
     for (QuestObjective const& obj : quest->GetObjectives())
     {
         switch (obj.Type)
@@ -19336,13 +19350,23 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
 
     int32 moneyRew = 0;
 
+	//XP custom Nordrassil
+	int8 bonus = 1;
+	/////////////////////////////////////////////////////
+	if (getLevel() < 60)
+		bonus = 5;
+	if (getLevel() < 80 && getLevel() >= 60)
+		bonus = 3;
+	if (getLevel() < 90 && getLevel() >= 80)
+		bonus = 2;
+	////////////////////////////////////////////////
     if (quest->GetRewMoneyMaxLevel() < 0)
         quest->GetRewMoneyMaxLevel();
     else if (getLevel() < sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
-        GiveXP(XP, nullptr);
+        GiveXP((XP * bonus), nullptr);
     else
         moneyRew = int32(quest->GetRewMoneyMaxLevel() * (GetMap()->IsDungeon() && sWorld->getBoolConfig(CONFIG_DROP_DUNGEON_ONLY_X1) ? 1.0f: sWorld->getRate(RATE_DROP_MONEY)));
-
+	//////////////////////////////////////////////////////////////
     // Give player extra money if GetRewMoney > 0 and get ReqMoney if negative
     if (GetQuestMoneyReward(quest))
         moneyRew += GetQuestMoneyReward(quest);
@@ -19445,6 +19469,8 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
             UpdateAreaQuestTasks(GetAreaId(), GetAreaId());
         }
     }
+
+
 
     if (quest->IsRated())
         PvpRatedQuestReward(quest_id);
@@ -19596,6 +19622,8 @@ void Player::RewardQuest(Quest const* quest, uint32 reward, Object* questGiver, 
 
     //lets remove flag for delayed teleports
     SetCanDelayTeleport(false);
+
+
 }
 
 void Player::FailQuest(uint32 questId)
@@ -22439,37 +22467,41 @@ bool Player::LoadFromDB(ObjectGuid guid, SQLQueryHolder *holder)
         HandleAltVisSwitch();
     }
     
-    if (PreparedQueryResult DMStats = holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_DEATHMATCH_STATS))
+    if(PreparedQueryResult DMStats = holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_DEATHMATCH_STATS))
     {
         Field *fieldDM = DMStats->Fetch();
         ModifyDeathMatchStats(fieldDM[0].GetUInt32(), fieldDM[1].GetUInt32(), fieldDM[2].GetUInt64(), fieldDM[3].GetUInt32(), 0, fieldDM[4].GetUInt32());
     }
     
-    if (PreparedQueryResult dmStore = holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_DEATHMATCH_STORE))
+    if(PreparedQueryResult DMStore = holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_DEATHMATCH_STORE))
     {
-        Field *fieldDM = dmStore->Fetch();
-        dmScore.totalKills = fieldDM[0].GetUInt32();
-        dmScore.selectedMorph = fieldDM[1].GetUInt32();
+        Field *fieldDM = DMStore->Fetch();
+        
+        dmScore.total_kills = fieldDM[0].GetUInt32();
+        dmScore.selected_morph = fieldDM[1].GetUInt32();
         Tokenizer buyed_morph(fieldDM[2].GetString(), ' ');
         for (char const* token : buyed_morph)
-			dmScore.buyedMorphs.insert(atol(token));
+            dmScore.buyed_morphs.insert(atol(token));
         
     }
     
-    if (PreparedQueryResult ChatResult = holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_CHAT_LOGOS))
+    if(PreparedQueryResult ChatResult = holder->GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_CHAT_LOGOS))
     {
         do
         {
             Field *field = ChatResult->Fetch();
+            
             std::string logo = field[0].GetString();
             bool active = field[1].GetBool();
+            
             buyed_chat_logos.insert(std::pair<std::string, bool>(logo, active));
+            
             if (active)
                 setSelectedChatLogo(logo);
             
             // setSelectedChatLogo("|TInterface/ICONS/Inv_misc_map08:20|t");
             
-        } while (ChatResult->NextRow());
+        }while(ChatResult->NextRow());
     }
 
     if (PreparedQueryResult armyQuery = holder->GetPreparedResult(PLAYER_LOGIN_QUERY_ARMY_TRAINING))
@@ -25305,6 +25337,7 @@ void Player::SaveInventoryAndGoldToDB(SQLTransaction& trans)
     SaveGoldToDB(trans);
 }
 
+
 void Player::SaveGoldToDB(SQLTransaction& trans)
 {
     PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UDP_CHAR_MONEY);
@@ -26705,7 +26738,7 @@ bool Player::hasChatLogo(std::string const& logo) const
 
 bool Player::BuyChatLogoByDeathMatch(std::string const& logo, uint32 cost)
 {
-    if (dmScore.totalKills < cost && !isGameMaster())
+    if (dmScore.total_kills < cost && !isGameMaster())
         return false;
     
     if (hasChatLogo(logo))
@@ -26716,7 +26749,7 @@ bool Player::BuyChatLogoByDeathMatch(std::string const& logo, uint32 cost)
     setSelectedChatLogo(logo);
     
     if (!isGameMaster())
-        dmScore.totalKills -= cost;
+        dmScore.total_kills -= cost;
     return true;
 }
 
@@ -27021,8 +27054,11 @@ void Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell* s
                 continue;
             }
 
-            AddPct(totalmul, mod->value);
-        }
+			if (mod->spellId == 191572) // Molten Blast
+				AddPct(totalmul, mod->value / 2);
+			else
+				AddPct(totalmul, mod->value);
+		}
 
         DropModCharge(mod, spell);
     }
@@ -28687,7 +28723,7 @@ void Player::AddSpellAndCategoryCooldowns(SpellInfo const* spellInfo, uint32 ite
         {
             case 34861:
             {
-                if (HasAura(238136)) // Cosmic Ripple
+                /*if (HasAura(238136)) // Cosmic Ripple
                 {
                     int32 delay = (cooldownTime - curTime) * IN_MILLISECONDS;
                     AddDelayedEvent(delay, [this]() -> void
@@ -28695,7 +28731,7 @@ void Player::AddSpellAndCategoryCooldowns(SpellInfo const* spellInfo, uint32 ite
                         if (this)
                             CastSpell(this, 243241, true);
                     });
-                }
+                }*/
                 break;
             }
             case 72757: // Will of the Forsaken Cooldown Trigger (WOTF)
@@ -29161,6 +29197,17 @@ void Player::SetBGTeam(uint32 team)
 uint32 Player::GetBGTeam() const
 {
     return m_bgData.BgTeam ? m_bgData.BgTeam : GetTeam();
+}
+
+uint32 Player::GetBGQueueTeam() const
+{
+	if (HasAura(193472))
+		return HORDE;
+
+	if (HasAura(193475))
+		return ALLIANCE;
+
+	return GetTeam();
 }
 
 TeamId Player::GetBGTeamId() const
@@ -29754,14 +29801,12 @@ void Player::SendInitialPacketsBeforeAddToMap(bool login)
     if (login) // Don`t send when teleported
     {
         SendEquipmentSetList();
-        float speedrate = sWorld->getFloatConfig(CONFIG_SPEED_GAME);
-        uint32 speedtime = ((sWorld->GetGameTime() - sWorld->GetUptime()) + (sWorld->GetUptime() * speedrate));
         m_achievementMgr->SendAllAchievementData(this);
 
         WorldPackets::Misc::LoginSetTimeSpeed loginSetTimeSpeed;
-        loginSetTimeSpeed.NewSpeed = 0.01666667f * speedrate;
-        loginSetTimeSpeed.GameTime = speedtime;
-        loginSetTimeSpeed.ServerTime = speedtime;
+        loginSetTimeSpeed.NewSpeed = 0.01666667f;
+        loginSetTimeSpeed.GameTime = sWorld->GetGameTime();
+        loginSetTimeSpeed.ServerTime = sWorld->GetGameTime();
         SendDirectMessage(loginSetTimeSpeed.Write());
     }
 
@@ -29837,7 +29882,7 @@ void Player::SendInitialPacketsAfterAddToMap(bool login)
     //worldServerInfo.IsTournamentRealm = 0;
     SendDirectMessage(worldServerInfo.Write());
 
-    CastSpell(this, 836, false);                             // LOGINEFFECT
+    //CastSpell(this, 836, false);                             // LOGINEFFECT
 
     // set some aura effects that send packet to player client after add player to map
     // SendMessageToSet not send it to player not it map, only for aura that not changed anything at re-apply
@@ -34488,17 +34533,17 @@ void Player::SetWinToday(bool isWinner, uint8 type, bool all)
     }
 }
 
-void Player::ModifyDeathMatchStats(uint32 kills, uint32 deaths, uint64 damage, int32 rating, uint32 totalKills, uint32 matches /* = 1 */)
+void Player::ModifyDeathMatchStats(uint32 kills, uint32 deaths, uint64 damage, int32 rating, uint32 total_kills, uint32 matches)
 {
     dmScore.kills += kills;
     dmScore.deaths += deaths;
     dmScore.damage += damage;
-    if (rating < 0 && -1 * rating >= dmScore.rating)
-        dmScore.rating = 0;
+    if (rating < 0 && -1*rating >= dmScore.rating )
+        dmScore.rating  = 0;
     else
         dmScore.rating += rating; 
     
-    dmScore.totalKills += totalKills;
+    dmScore.total_kills += total_kills;
     dmScore.matches += matches; 
     if (matches == 1)
         dmScore.needSave = true;
@@ -38413,7 +38458,7 @@ void Player::Clear()
     while (!m_timeSyncQueue.empty())
         m_timeSyncQueue.pop();
 
-    _researchSites.clear();
+	//_reserchSites.clear();
     _completedProjects.clear();
     m_clientGUIDs.clear();
     m_extraLookList.clear();
@@ -38508,7 +38553,7 @@ void Player::PrintPlayerSize()
     size += m_reputationMgr.GetSize();
     size += _collectionMgr->GetSize();
 
-    size += _researchSites.size() * sizeof(ResearchSiteSet);
+    //size += _reserchSites.size() * sizeof(ResearchSiteList);
     size += _completedProjects.size() * sizeof(CompletedProjectList);
     size += m_clientGUIDs.size() * sizeof(GuidSet);
     size += m_extraLookList.size() * sizeof(GuidSet);
@@ -38828,10 +38873,10 @@ void Player::_SaveDeathMatchStats(SQLTransaction& trans)
     index = 0;
     stmt = CharacterDatabase.GetPreparedStatement(CHAR_REP_PLAYER_DEATHMATCH_STORE);
     stmt->setUInt64(index++, GetGUIDLow());
-    stmt->setUInt32(index++, dmScore.totalKills);
-    stmt->setUInt32(index++, dmScore.selectedMorph);
+    stmt->setUInt32(index++, dmScore.total_kills);
+    stmt->setUInt32(index++, dmScore.selected_morph);
     std::ostringstream out;
-    for (auto morph : dmScore.buyedMorphs)
+    for (auto morph : dmScore.buyed_morphs)
         out << morph << " ";
     stmt->setString(index++, out.str());
 

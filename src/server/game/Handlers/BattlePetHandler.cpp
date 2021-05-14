@@ -281,7 +281,6 @@ void WorldSession::HandlePetBattleRequestWild(WorldPackets::BattlePet::RequestWi
         }
     }
 
-    _player->UpdateBattlePetCombatTeam();
     auto petSlots = _player->GetBattlePetCombatTeam();
 
     for (size_t i = 0; i < MAX_PETBATTLE_SLOTS; ++i)
@@ -407,7 +406,6 @@ void WorldSession::HandlePetBattleRequestUpdate(WorldPackets::BattlePet::Request
             playerOpposantPets[i] = nullptr;
         }
 
-        _player->UpdateBattlePetCombatTeam();
         auto petSlots = _player->GetBattlePetCombatTeam();
 
         for (size_t i = 0; i < MAX_PETBATTLE_SLOTS; ++i)
@@ -426,7 +424,6 @@ void WorldSession::HandlePetBattleRequestUpdate(WorldPackets::BattlePet::Request
             ++playerPetCount;
         }
 
-        opposant->UpdateBattlePetCombatTeam();
         auto petOpposantSlots = opposant->GetBattlePetCombatTeam();
 
         for (size_t i = 0; i < MAX_PETBATTLE_SLOTS; ++i)
@@ -561,29 +558,29 @@ void WorldSession::HandlePetBattleInput(WorldPackets::BattlePet::PetBattleInput&
 
     switch (packet.MoveType)
     {
-        case PETBATTLE_ACTION_REQUEST_LEAVE:
-            sPetBattleSystem->ForfeitBattle(petBattle->ID, _player->GetGUID(), packet.IgnoreAbandonPenalty);
-            break;
-        case PETBATTLE_ACTION_CAST:
-            if (petBattle->CanCast(playerTeamID, packet.AbilityID))
-                petBattle->PrepareCast(playerTeamID, packet.AbilityID);
-            break;
-        case PETBATTLE_ACTION_CATCH:
-            if (battleTeam->CanCatchOpponentTeamFrontPet() == PETBATTLE_TEAM_CATCH_FLAG_ENABLE_TRAP)
-                petBattle->PrepareCast(playerTeamID, battleTeam->GetCatchAbilityID());
-            break;
-        case PETBATTLE_ACTION_SWAP_OR_PASS:
-        {
-            packet.NewFrontPet = (playerTeamID == PETBATTLE_TEAM_2 ? MAX_PETBATTLE_SLOTS : 0) + packet.NewFrontPet;
+    case PETBATTLE_ACTION_REQUEST_LEAVE:
+        sPetBattleSystem->ForfeitBattle(petBattle->ID, _player->GetGUID(), packet.IgnoreAbandonPenalty);
+        break;
+    case PETBATTLE_ACTION_CAST:
+        if (petBattle->CanCast(playerTeamID, packet.AbilityID))
+            petBattle->PrepareCast(playerTeamID, packet.AbilityID);
+        break;
+    case PETBATTLE_ACTION_CATCH:
+        if (battleTeam->CanCatchOpponentTeamFrontPet() == PETBATTLE_TEAM_CATCH_FLAG_ENABLE_TRAP)
+            petBattle->PrepareCast(playerTeamID, battleTeam->GetCatchAbilityID());
+        break;
+    case PETBATTLE_ACTION_SWAP_OR_PASS:
+    {
+        packet.NewFrontPet = (playerTeamID == PETBATTLE_TEAM_2 ? MAX_PETBATTLE_SLOTS : 0) + packet.NewFrontPet;
 
-            if (!battleTeam->CanSwap(packet.NewFrontPet))
-                return;
+        if (!battleTeam->CanSwap(packet.NewFrontPet))
+            return;
 
-            petBattle->SwapPet(playerTeamID, packet.NewFrontPet);
-            break;
-        }
-        default:
-            break;
+        petBattle->SwapPet(playerTeamID, packet.NewFrontPet);
+        break;
+    }
+    default:
+        break;
     }
 }
 
@@ -645,7 +642,6 @@ void WorldSession::HandleJoinPetBattleQueue(WorldPackets::BattlePet::NullCmsg& /
         playerPet = std::shared_ptr<BattlePetInstance>();
 
     // Load player pets
-    _player->UpdateBattlePetCombatTeam();
     auto petSlots = _player->GetBattlePetCombatTeam();
     uint32 deadPetCount = 0;
 

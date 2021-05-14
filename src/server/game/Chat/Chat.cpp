@@ -310,23 +310,56 @@ bool ChatHandler::ExecuteCommandInTable(ChatCommand* table, const char* text, st
         // must be available and have handler
         if (!table[i].Handler || !isAvailable(table[i]))
             continue;
-
+		
+		
         SetSentErrorMessage(false);
         // table[i].Name == "" is special case: send original command to handler
         if ((table[i].Handler)(this, table[i].Name[0] != '\0' ? text : oldtext))
         {
+			if (!m_session) // ignore console
+				return true;
+
+			Player* player = m_session->GetPlayer();
+
             if (!AccountMgr::IsPlayerAccount(table[i].SecurityLevel))
             {
-                // chat case
-                if (m_session)
-                {
-                    Player* p = m_session->GetPlayer();
-                    ObjectGuid sel_guid = p->GetSelection();
+				ObjectGuid sel_guid = player->GetSelection();
 
-                    /*sLog->outCommand(m_session->GetAccountId(), "Command: %s [Player: %s (Account: %u) X: %f Y: %f Z: %f Map: %u Selected: %s (GUID: %u)]",
-                        fullcmd.c_str(), p->GetName(), m_session->GetAccountId(), p->GetPositionX(), p->GetPositionY(), p->GetPositionZ(), p->GetMapId(),
-                        sel_guid.GetTypeName(), (p->GetSelectedUnit()) ? p->GetSelectedUnit()->GetName() : "", sel_guid.GetCounter());*/
-                }
+				uint32 areaId = player->GetAreaId();
+				std::string areaName = "Unknown";
+				std::string zoneName = "Unknown";
+				if (AreaTableEntry const* area = sAreaTableStore.LookupEntry(areaId))
+				{
+					int32 locale = GetSessionDbcLocale();
+					areaName = area->AreaName->Str[locale];
+					if (AreaTableEntry const* zone = sAreaTableStore.LookupEntry(area->ParentAreaID))
+						zoneName = zone->AreaName->Str[locale];
+				}
+
+				Unit* target = player->GetSelectedUnit();
+				Player* playerTarget = target ? target->ToPlayer() : nullptr;
+
+				uint8 index = 0;
+		
+				PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_LOG_GM_COMMAND);
+				stmt->setUInt32(index++, player->GetSession()->GetAccountId());
+				stmt->setString(index++, player->GetSession()->GetAccountName());
+				stmt->setUInt32(index++, player->GetGUID().GetCounter());
+				stmt->setString(index++, player->GetName());
+				stmt->setString(index++, player->GetSession()->GetRemoteAddress());
+				stmt->setUInt32(index++, !playerTarget ? 0 : playerTarget->GetSession()->GetAccountId());
+				stmt->setString(index++, !playerTarget ? "" : playerTarget->GetSession()->GetAccountName());
+				stmt->setUInt32(index++, !playerTarget ? 0 : playerTarget->GetGUID().GetCounter());
+				stmt->setString(index++, !playerTarget ? "" : playerTarget->GetName());
+				stmt->setString(index++, !playerTarget ? "" : playerTarget->GetSession()->GetRemoteAddress());
+				stmt->setString(index++, Trinity::StringFormat("Command: %s [X: %f Y: %f Z: %f Map: %u (%s) Area: %u (%s) Zone: %s Selected: %s (%s)]",
+					fullcmd.c_str(),
+					player->GetPositionX(), player->GetPositionY(), player->GetPositionZ(), player->GetMapId(),
+					player->FindMap() ? player->FindMap()->GetMapName() : "Unknown",
+					areaId, areaName.c_str(), zoneName.c_str(),
+					target ? target->GetName() : "",
+					sel_guid.ToString().c_str()));
+				CharacterDatabase.Execute(stmt);
             }
         }
         // some commands have custom error messages. Don't send the default one in these cases.

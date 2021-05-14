@@ -245,10 +245,7 @@ enum WorldBoolConfigs
 	CONFIG_PLAYER_UNLIMITED_LEGION_LEGENDARIES,
 	CONFIG_PLAYER_ALLOW_PVP_TALENTS_ALL_THE_TIME,
     CONFIG_AUTO_SAY_HELLO,
-	CONFIG_NO_CAST_TIME,
-	CONFIG_HURT_IN_REAL_TIME,
-    CONFIG_GAIN_HONOR_GUARD,
-    CONFIG_GAIN_HONOR_ELITE,
+	CONFIG_ENABLE_CUSTOM_STAD,
     BOOL_CONFIG_VALUE_COUNT
 };
 
@@ -271,7 +268,6 @@ enum WorldFloatConfigs
     CONFIG_FLOAT_VARIABLE_FOR_DEBUG_0,
     CONFIG_FLOAT_VARIABLE_FOR_DEBUG_1,
     CONFIG_CAP_KILL_CREATURE_POINTS,
-	CONFIG_SPEED_GAME,
     FLOAT_CONFIG_VALUE_COUNT
 };
 
@@ -496,6 +492,9 @@ enum WorldIntConfigs
 	CONFIG_WEIGHTED_MYTHIC_KEYSTONE,
 	CONFIG_PLAYER_AFK_TIMEOUT,
 	CONFIG_PLAYER_LEGION_LEGENDARY_EQUIP_COUNT,
+	CONFIG_PVP_TEMPLATE_MAIN_STAD,
+	CONFIG_PVP_TEMPLATE_STAMINA_STAD,
+	CONFIG_PVP_TEMPLATE_SECUNDARY_STAD,
     INT_CONFIG_VALUE_COUNT
 };
 
@@ -575,8 +574,6 @@ enum Rates
     RATE_MOVESPEED,
     RATE_ONLINE,
     RATE_DONATE,
-    CONFIG_XP_FOR_PVP_LOW_RATE,
-    CONFIG_XP_FOR_PVP_HIGH_RATE,
     MAX_RATES
 };
 
@@ -924,6 +921,11 @@ class World
         std::string m_serverTimeTZ;
         std::string m_gameTimeTZ;
 
+		// Get Custom Pvp Penalizations for a spelcialziation
+		int32 GetCustomPvpPenalizations(uint32 specialization, PvpPenalizationType type);
+		// Load Custom Pvp Penalizations
+		void LoadCustomPvpPenalizations();
+
     protected:
         void _UpdateGameTime();
         // callback for UpdateRealmCharacters
@@ -1061,6 +1063,9 @@ class World
 
         std::queue<GlobalMessageData> _messageQueue;
         sf::contention_free_shared_mutex< > _messageQueueLock;
+
+		// Custom Pvp Penalizations by specializations
+		std::map<uint32, std::vector<int32>> CustomPvpPenalizations;
 };
 
 extern Realm realm;

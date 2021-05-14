@@ -20,6 +20,7 @@
 #include "ChatTextBuilder.h"
 #include "CreatureTextMgr.h"
 #include "CreatureTextMgrImpl.h"
+#include "ConditionMgr.h"
 #include "DatabaseEnv.h"
 #include "GossipDef.h"
 #include "GridDefines.h"
